@@ -5,58 +5,68 @@ camera = null,
 root = null,
 group = null,
 floor = null,
-directionalLight = null;
-orbitControls = null;
-var object;
-var animator = null;
-var loopAnimation = true;
+roof = null,
+wall = null;
 
-// Ship Movement
+// Movement
 var moveForward = false;
 var moveBackward = false;
 var moveLeft = false;
 var moveRight = false;
 var canJump = false;
 
+var objLoader = null;
+var mtlLoader = null;
+
 var velocity = new THREE.Vector3();
 var direction = new THREE.Vector3();
 
-var controls = null;
-var keyboard = null;
+var objects = [];
 
 
 var floorAnimator = null;
 var animateFloor = true;
 
-var duration = 1500; // ms
-var currentTime = Date.now();
-var actualTime = Date.now();
-var startedTime = Date.now();
+var prevTime = performance.now();
 
-var plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 10);
-var raycaster = new THREE.Raycaster();
-var mouse = new THREE.Vector3();
-var intersectPoint = new THREE.Vector3();
+var raycaster;
+var vertex = new THREE.Vector3();
+var color = new THREE.Color();
 
 
 function animate() {
     
 
-    var now = Date.now();
-    var delta = now - currentTime;
-    currentTime = now;
-
-    direction.y = Number( moveForward ) - Number( moveBackward );
-    direction.z = Number( moveLeft ) - Number( moveRight );
-    direction.normalize(); // this ensures consistent movements in all directions
-    if ( moveForward || moveBackward ) velocity.y -= direction.y *0.003* delta;
-    if ( moveLeft || moveRight ) velocity.z -= direction.z *0.003* delta;
+    requestAnimationFrame( animate );
     
-    controls.getObject().translateZ( velocity.y * delta );
-    controls.getObject().translateX( velocity.z * delta );
+    if ( controls.isLocked === true ) {
 
-    velocity.y = 0;
-    velocity.z = 0;
+        var time = performance.now();
+        var delta = ( time - prevTime ) / 1000;
+
+        velocity.x -= velocity.x * 10.0 * delta;
+        velocity.z -= velocity.z * 10.0 * delta;
+        velocity.y -= 9.8 * 80.0 * delta; // 100.0 = mass
+
+        direction.z = Number( moveForward ) - Number( moveBackward );
+        direction.x = Number( moveLeft ) - Number( moveRight );
+        direction.normalize(); // this ensures consistent movements in all directions
+
+        if ( moveForward || moveBackward ) velocity.z -= direction.z * 180.0 * delta;
+        if ( moveLeft || moveRight ) velocity.x -= direction.x * 180.0 * delta;
+
+        controls.getObject().translateX( velocity.x * delta );
+        controls.getObject().translateY( velocity.y * delta );
+        controls.getObject().translateZ( velocity.z * delta );
+        
+
+        if ( controls.getObject().position.y < 10 ) {
+            velocity.y = 0;
+            controls.getObject().position.y = 10;
+            canJump = true;
+        }
+        prevTime = time;
+    }
     
 }
 
@@ -78,86 +88,40 @@ function run()
         
 }
 
-
 function createScene(canvas) 
 {
     
-    // Create the Three.js renderer and attach it to our canvas
-    renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 ); 
 
-    // Set the viewport size
-    renderer.setSize(window.innerWidth -20, window.innerHeight -20);
-    // Turn on shadows
-    renderer.shadowMap.enabled = true;
-    // Options are THREE.BasicShadowMap, THREE.PCFShadowMap, PCFSoftShadowMap
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // Create a new Three.js scene
     scene = new THREE.Scene();
+    //scene.background = new THREE.Color( 0xffffff );
+    // scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
 
-    // Add  a camera so we can view the scene
-    camera = new THREE.PerspectiveCamera( 45, canvas.width / canvas.height, 1, 4000 );
-    camera.position.set(0,10,0);
-    // camera.rotation = 90;
-    //camera.lookAt(new THREE.Vector3(0,50,0))
-    scene.add(camera);
-
-    controls = new THREE.PointerLockControls(camera);
-    scene.add(controls.getObject());
-
-    // orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
-    
-    // Create a group to hold all the objects
-    root = new THREE.Object3D;
-    
-    // Add a directional light to show off the object
-    directionalLight = new THREE.DirectionalLight( 0xffffff, 1);
-    //directionalLight.castShadow = true;
-    directionalLight.position.set(0, 50, 300);
-    root.add(directionalLight);
-
-    // Point light
-    // var pointLight = new THREE.PointLight (0xffffff, 0.5, 10000);
-    // pointLight.position.set(350, 350, 300);
-    // pointLight.castShadow = true;
-
-    //pointLight.shadow.camera.near = 0;
-    //pointLight.shadow.camera.far = 4000;
-    // pointLight.shadow.camera.fov = 10;
-    
-    //scene.add(pointLight);
-
-    // Create and add all the lights
-    
-
+    //var light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
+    //light.position.set( 0.5, 1, 0.75 );
     ambientLight = new THREE.AmbientLight ( 0x888888 );
-    root.add(ambientLight);
-    
-    // Create a group to hold the objects
-    group = new THREE.Object3D;
-    root.add(group);
+    //scene.add( ambientLight );
 
-    // Create grass texture map
-    var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
-    map.wrapS = map.wrapT = THREE.RepeatWrapping;
-    map.repeat.set(10,10);
 
-    var color = 0xffffff;
+    controls = new THREE.PointerLockControls( camera );
+    var blocker = document.getElementById( 'blocker' );
+    var instructions = document.getElementById( 'instructions' );
 
-    // Put in a ground plane to show off the lighting
-    geometry = new THREE.PlaneGeometry(100, 100, 50, 50);
-    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-    floor.rotation.x = -Math.PI / 2;
+    instructions.addEventListener( 'click', function () {
+        controls.lock();
+    }, false );
 
-    // Add the mesh to our group
-    root.add( floor );
-    floor.castShadow = false;
-    floor.receiveShadow = true;
+    controls.addEventListener( 'lock', function () {
+        instructions.style.display = 'none';
+        blocker.style.display = 'none';
+    } );
 
-    // Now add the group to our scene
-    scene.add( root );
+    controls.addEventListener( 'unlock', function () {
+        blocker.style.display = 'block';
+        instructions.style.display = '';
+    } );
 
-    // Load ship
+    scene.add( controls.getObject() );
 
     var onKeyDown = function ( event ) {
         switch ( event.keyCode ) {
@@ -177,9 +141,12 @@ function createScene(canvas)
             case 68: // d
                 moveRight = true;
                 break;
+            case 32: // space
+                if ( canJump === true ) velocity.y += 100;
+                canJump = false;
+                break;
         }
     };
-
     var onKeyUp = function ( event ) {
         switch ( event.keyCode ) {
             case 38: // up
@@ -200,30 +167,216 @@ function createScene(canvas)
                 break;
         }
     };
-
-    window.addEventListener( 'resize', onWindowResize);
     document.addEventListener( 'keydown', onKeyDown, false );
     document.addEventListener( 'keyup', onKeyUp, false );
-    window.addEventListener('mousemove', onmousemove, false);
+    raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 
-    // Sky Box
+    CreateRoom1();
+  
+    //
+    renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
+    renderer.setSize(window.innerWidth -40, window.innerHeight -40);
+    document.body.appendChild( renderer.domElement );
+    //
+    window.addEventListener( 'resize', onWindowResize, false );
+}
 
-	// var imagePrefix = "images/skybox/";
-    // //var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
-    // var directions  = ["wall", "wall", "roof", "floor", "wall", "wall"];
-	// var imageSuffix = ".jpg";
-	// var skyGeometry = new THREE.CubeGeometry( 6000, 2000, 6000 );	
-	
-	// var materialArray = [];
-	// for (var i = 0; i < 6; i++)
-	// 	materialArray.push( new THREE.MeshBasicMaterial({
-	// 		map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
-	// 		side: THREE.BackSide
-	// 	}));
-	// var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
-	// var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
-	// scene.add( skyBox );
+function CreateRoom1(){
 
+    // Create floor texture map
+        var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(100, 100, 50, 50);
+        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        floor.rotation.x = -Math.PI / 2;
+
+        // Add the mesh to our group
+        scene.add( floor );
+        floor.castShadow = false;
+        floor.receiveShadow = true;
+
+    // Create Wall 1 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(100, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.position.z = 50
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+  
+    // Create Wall 2 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(100, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.position.z = -50
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+    // Create Wall 3 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(100, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = 50
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+    // Create Wall 4 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(100, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = -50
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+    // Create roof texture map
+        var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(100, 100, 50, 50);
+        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        roof.rotation.x = -Math.PI / 2;
+        roof.position.y = 25
+
+
+        // Add the mesh to our group
+        scene.add( roof );
+        roof.castShadow = false;
+        roof.receiveShadow = true;
+
+    // Create 4 Lights
+        var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
+        pointLight.position.set(45, 20, 45);
+        pointLight.castShadow = true;
+        
+        scene.add(pointLight);
+
+        var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
+        pointLight.position.set(-45, 20, 45);
+        pointLight.castShadow = true;
+        
+        scene.add(pointLight);
+
+
+        var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
+        pointLight.position.set(45, 20, -45);
+        pointLight.castShadow = true;
+        
+        scene.add(pointLight);
+
+
+        var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
+        pointLight.position.set(-45, 20, -45);
+        pointLight.castShadow = true;
+        
+        scene.add(pointLight);
+
+    loadDesk();
+}
+
+function loadDesk(){
+
+    console.log("Loading enemy")
+
+        if(!mtlLoader)
+
+            mtlLoader = new THREE.MTLLoader();
+
+        mtlLoader.load(
+            'models/deskWorn_OBJ/deskWorn_OBJ.mtl',
+            
+            function(materials){
+
+                materials.preload();
+
+            if(!objLoader)
+
+                objLoader = new THREE.OBJLoader();
+
+                objLoader.setMaterials(materials)
+
+            objLoader.load(
+                'models/deskWorn_OBJ/deskWorn_OBJ.obj',
+
+                function(object)
+                {
+                    //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse( function ( child ) 
+                    {
+                        if ( child instanceof THREE.Mesh ) 
+                        {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    } );
+                            
+                    desk = object;
+                    desk.scale.set(.2,.2,.2);
+                    desk.position.z = 0;
+                    desk.position.x = 45;
+                    desk.position.y = 0;
+                    //enemyShip.rotation.y = Math.PI/2;
+                   
+                    scene.add(desk);
+                },
+                function ( xhr ) {
+
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                    building_loaded = ( xhr.loaded / xhr.total * 100 )
+            
+                },
+                // called when loading has errors
+                function ( error ) {
+            
+                    console.log( 'An error happened' );
+            
+                });
+        })
 }
 
 function onWindowResize() 
@@ -232,17 +385,6 @@ function onWindowResize()
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
-
-function onmousemove(event) {
-
-    mouse.x = event.clientX - (window.innerWidth / 2);
-    mouse.y = event.clientY - (window.innerHeight / 2);
-    mouse.z = camera.position.z;
-
-    console.log
-
-    camera.lookAt(mouse);
-} 
 
 function playAnimations()
 {
@@ -269,3 +411,128 @@ function playAnimations()
     }
 }
 
+THREE.PointerLockControls = function ( camera, domElement ) {
+
+    console.log("CONTROLES")
+
+	var scope = this;
+
+	this.domElement = domElement || document.body;
+	this.isLocked = false;
+
+	camera.rotation.set( 0, 0, 0 );
+
+	var pitchObject = new THREE.Object3D();
+	pitchObject.add( camera );
+
+	var yawObject = new THREE.Object3D();
+	yawObject.position.y = 10;
+	yawObject.add( pitchObject );
+
+	var PI_2 = Math.PI / 2;
+
+	function onMouseMove( event ) {
+
+        console.log("Moviendo mouse")
+
+		if ( scope.isLocked === false ) return;
+
+		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+		yawObject.rotation.y -= movementX * 0.002;
+		pitchObject.rotation.x -= movementY * 0.002;
+
+		pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
+
+	}
+
+	function onPointerlockChange() {
+
+		if ( document.pointerLockElement === scope.domElement ) {
+
+			scope.dispatchEvent( { type: 'lock' } );
+
+			scope.isLocked = true;
+
+		} else {
+
+			scope.dispatchEvent( { type: 'unlock' } );
+
+			scope.isLocked = false;
+
+		}
+
+	}
+
+	function onPointerlockError() {
+
+		console.error( 'THREE.PointerLockControls: Unable to use Pointer Lock API' );
+
+	}
+
+	this.connect = function () {
+
+		document.addEventListener( 'mousemove', onMouseMove, false );
+		document.addEventListener( 'pointerlockchange', onPointerlockChange, false );
+		document.addEventListener( 'pointerlockerror', onPointerlockError, false );
+
+	};
+
+	this.disconnect = function () {
+
+		document.removeEventListener( 'mousemove', onMouseMove, false );
+		document.removeEventListener( 'pointerlockchange', onPointerlockChange, false );
+		document.removeEventListener( 'pointerlockerror', onPointerlockError, false );
+
+	};
+
+	this.dispose = function () {
+
+		this.disconnect();
+
+	};
+
+	this.getObject = function () {
+
+		return yawObject;
+
+	};
+
+	this.getDirection = function () {
+
+		// assumes the camera itself is not rotated
+
+		var direction = new THREE.Vector3( 0, 0, - 1 );
+		var rotation = new THREE.Euler( 0, 0, 0, 'YXZ' );
+
+		return function ( v ) {
+
+			rotation.set( pitchObject.rotation.x, yawObject.rotation.y, 0 );
+
+			v.copy( direction ).applyEuler( rotation );
+
+			return v;
+
+		};
+
+	}();
+
+	this.lock = function () {
+
+		this.domElement.requestPointerLock();
+
+	};
+
+	this.unlock = function () {
+
+		document.exitPointerLock();
+
+	};
+
+	this.connect();
+
+};
+
+THREE.PointerLockControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+THREE.PointerLockControls.prototype.constructor = THREE.PointerLockControls;

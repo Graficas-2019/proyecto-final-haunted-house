@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Not Star Fox Game</title>
+<title>Haunted house</title>
 
 <link rel="stylesheet" href="libs/jquery-ui/jquery-ui.css" />
 <link rel="stylesheet" href="libs/colorpicker/css/colorpicker.css" />
@@ -19,6 +19,8 @@
 
 <script src="libs/three.js/loaders/OBJLoader.js"></script>
 <script src="libs/three.js/loaders/MTLLoader.js"></script>
+<script src="./libs/three.js/loaders/FBXLoader.js"></script>	
+<script src="./libs/three.js/loaders/inflate.min.js"></script>
 
 <script src="libs/tween.js/tween.js"></script>
 <script src="libs/keyframe.js/keyframe.js"></script>
@@ -54,8 +56,18 @@
 </head>
 <body>
 
-    <div id="container">
-		<canvas id="webglcanvas" ></canvas>
+	<div id="blocker">
+
+		<div id="instructions">
+			<span style="font-size:40px">Click to play</span>
+			<br />
+			(W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+		</div>
+
+	</div>
+
+	<div id="container">
+	<canvas id="webglcanvas" ></canvas>
 	
 </body>
 </html>

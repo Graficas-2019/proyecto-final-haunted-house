@@ -55,3 +55,4 @@ function initControls()
     $('#ambient').ColorPickerSetColor(ambientHex);
     $('#ambient div').css( "background-color", ambientHex );
 }
+
