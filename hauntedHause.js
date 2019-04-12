@@ -23,6 +23,8 @@ var direction = new THREE.Vector3();
 
 var objects = [];
 
+var Cuarto1 = [];
+
 
 var floorAnimator = null;
 var animateFloor = true;
@@ -32,6 +34,7 @@ var prevTime = performance.now();
 var raycaster;
 var vertex = new THREE.Vector3();
 var color = new THREE.Color();
+
 
 
 function animate() {
@@ -94,14 +97,6 @@ function createScene(canvas)
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 ); 
 
     scene = new THREE.Scene();
-    //scene.background = new THREE.Color( 0xffffff );
-    // scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
-
-    //var light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
-    //light.position.set( 0.5, 1, 0.75 );
-    ambientLight = new THREE.AmbientLight ( 0x888888 );
-    //scene.add( ambientLight );
-
 
     controls = new THREE.PointerLockControls( camera );
     var blocker = document.getElementById( 'blocker' );
@@ -177,6 +172,10 @@ function createScene(canvas)
     renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
     renderer.setSize(window.innerWidth -40, window.innerHeight -40);
     document.body.appendChild( renderer.domElement );
+    // Turn on shadows
+    renderer.shadowMap.enabled = true;
+    // Options are THREE.BasicShadowMap, THREE.PCFShadowMap, PCFSoftShadowMap
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     //
     window.addEventListener( 'resize', onWindowResize, false );
 }
@@ -312,71 +311,128 @@ function CreateRoom1(){
         
         scene.add(pointLight);
 
+        var pointLight = new THREE.PointLight (0xffff33, 0.9, 50);
+        pointLight.position.set(0, 20, 0);
+        pointLight.castShadow = true;
+        
+        scene.add(pointLight);
+
     loadDesk();
+    loadBookCase();
 }
 
 function loadDesk(){
 
-    console.log("Loading enemy")
 
-        if(!mtlLoader)
+    if(!mtlLoader)
 
-            mtlLoader = new THREE.MTLLoader();
+        mtlLoader = new THREE.MTLLoader();
 
-        mtlLoader.load(
-            'models/deskWorn_OBJ/deskWorn_OBJ.mtl',
-            
-            function(materials){
+    mtlLoader.load(
+        'models/deskWorn_OBJ/deskWorn_OBJ.mtl',
+        
+        function(materials){
 
-                materials.preload();
+            materials.preload();
 
-            if(!objLoader)
+        if(!objLoader)
 
-                objLoader = new THREE.OBJLoader();
+            objLoader = new THREE.OBJLoader();
 
-                objLoader.setMaterials(materials)
+            objLoader.setMaterials(materials)
 
-            objLoader.load(
-                'models/deskWorn_OBJ/deskWorn_OBJ.obj',
+        objLoader.load(
+            'models/deskWorn_OBJ/deskWorn_OBJ.obj',
 
-                function(object)
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
                 {
-                    //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
-                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                    object.traverse( function ( child ) 
+                    if ( child instanceof THREE.Mesh ) 
                     {
-                        if ( child instanceof THREE.Mesh ) 
-                        {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                            //child.material.map = texture;
-                            //child.material.normalMap = normalMap;
-                        }
-                    } );
-                            
-                    desk = object;
-                    desk.scale.set(.2,.2,.2);
-                    desk.position.z = 0;
-                    desk.position.x = 45;
-                    desk.position.y = 0;
-                    //enemyShip.rotation.y = Math.PI/2;
-                   
-                    scene.add(desk);
-                },
-                function ( xhr ) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                desk = object;
+                desk.scale.set(.2,.2,.2);
+                desk.position.z = 0;
+                desk.position.x = 45;
+                desk.position.y = 0;
+                //enemyShip.rotation.y = Math.PI/2;
+                
+                scene.add(desk);
+            },
+            function ( xhr ) {
 
-                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
 
-                    building_loaded = ( xhr.loaded / xhr.total * 100 )
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+}
+
+function loadBookCase(){
+
+    if(!objLoader)
+
+        objLoader = new THREE.OBJLoader();
+
+    objLoader.load(
+        'models/BOOKCASE_MODEL/BOOKCASE_OBJ/SHELF_OBJ.obj',
+
+        function(object)
+        {
+            var texture = new THREE.TextureLoader().load('models/BOOKCASE_MODEL/SHELF_TEXTURE.bmp');
+            //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+            object.traverse( function ( child ) 
+            {
+                if ( child instanceof THREE.Mesh ) 
+                {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    child.material.map = texture;
+                    //child.material.normalMap = normalMap;
+                }
+            } );
+                    
+            desk = object;
+            desk.scale.set(.15,.15,.15);
+            desk.position.z = -50;
+            desk.position.x = 0;
+            desk.position.y = -3;
+            //enemyShip.rotation.y = Math.PI/2;
             
-                },
-                // called when loading has errors
-                function ( error ) {
-            
-                    console.log( 'An error happened' );
-            
-                });
-        })
+            scene.add(desk);
+        },
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            building_loaded = ( xhr.loaded / xhr.total * 100 )
+    
+        },
+        // called when loading has errors
+        function ( error ) {
+    
+            console.log( 'An error happened' );
+    
+        }
+    );
+
 }
 
 function onWindowResize() 

@@ -12,7 +12,7 @@ proyecto-final-haunted-house created by GitHub Classroom
 
 - Objetos varios como muebles para llenar ambientar el cuarto
 - Objeto de llave que al darle "E" con un raycast la obtengas y puedas abrir la puerta a la siguiente habitación 
-- Acertijo que al ser resuelto mostrará la llava 
+- Acertijo que al ser resuelto mostrará la llave
 - Objeto de reloj de péndulo que se movera para mostrar la llave 
 - Puerta a la siguiente habitación 
 
