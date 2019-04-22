@@ -8,12 +8,15 @@ floor = null,
 roof = null,
 wall = null;
 
+var mouse = new THREE.Vector3(), INTERSECTED, CLICKED;  
+
 // Movement
 var moveForward = false;
 var moveBackward = false;
 var moveLeft = false;
 var moveRight = false;
 var canJump = false;
+var action = false;
 
 var objLoader = null;
 var mtlLoader = null;
@@ -25,13 +28,11 @@ var objects = [];
 
 var Cuarto1 = [];
 
-
 var floorAnimator = null;
 var animateFloor = true;
 
 var prevTime = performance.now();
-
-var raycaster;
+var raycaster = new THREE.Raycaster();
 var vertex = new THREE.Vector3();
 var color = new THREE.Color();
 
@@ -69,6 +70,10 @@ function animate() {
             canJump = true;
         }
         prevTime = time;
+
+        if (action){
+            console.log("ACTION")
+        }
     }
     
 }
@@ -140,6 +145,31 @@ function createScene(canvas)
                 if ( canJump === true ) velocity.y += 100;
                 canJump = false;
                 break;
+            case 69: // e
+
+                // Origin from the raycast
+                var origin = new THREE.Vector3( controls.getObject().position.x ,controls.getObject().position.y ,controls.getObject().position.z);
+
+                // Direction of the camera
+                var lookAtVector = new THREE.Vector3;
+                lookAtVector = camera.getWorldDirection();
+                // find intersections
+                raycaster.set(origin, lookAtVector)
+
+                var intersects = raycaster.intersectObjects( scene.children );
+                console.log(intersects.length)
+
+                if ( intersects.length > 0 ) 
+                {
+                   
+                    for ( var i = 0; i < intersects.length; i++ ) {
+
+                        console.log(intersects[i].object.name)
+                
+                    }
+                }
+
+                break;
         }
     };
     var onKeyUp = function ( event ) {
@@ -159,6 +189,9 @@ function createScene(canvas)
             case 39: // right
             case 68: // d
                 moveRight = false;
+                break;
+            case 69: // e
+                action = false;
                 break;
         }
     };
@@ -199,12 +232,15 @@ function CreateRoom1(){
         floor.castShadow = false;
         floor.receiveShadow = true;
 
+        Cuarto1.push(floor);
+
     // Create Wall 1 texture map
         var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
         map.wrapS = map.wrapT = THREE.RepeatWrapping;
         map.repeat.set(10,10);
 
         var color = 0xffffff;
+        
 
         // Put in a ground plane to show off the lighting
         geometry = new THREE.PlaneGeometry(100, 50, 50, 50);
@@ -214,6 +250,8 @@ function CreateRoom1(){
         scene.add( wall );
         wall.castShadow = false;
         wall.receiveShadow = true;
+
+        Cuarto1.push(wall)
   
     // Create Wall 2 texture map
         var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
@@ -230,6 +268,8 @@ function CreateRoom1(){
         scene.add( wall );
         wall.castShadow = false;
         wall.receiveShadow = true;
+
+        Cuarto1.push(wall)
 
     // Create Wall 3 texture map
         var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
@@ -248,6 +288,8 @@ function CreateRoom1(){
         wall.castShadow = false;
         wall.receiveShadow = true;
 
+        Cuarto1.push(wall)
+
     // Create Wall 4 texture map
         var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
         map.wrapS = map.wrapT = THREE.RepeatWrapping;
@@ -264,6 +306,8 @@ function CreateRoom1(){
         scene.add( wall );
         wall.castShadow = false;
         wall.receiveShadow = true;
+
+        Cuarto1.push(wall);
 
     // Create roof texture map
         var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
@@ -284,41 +328,47 @@ function CreateRoom1(){
         roof.castShadow = false;
         roof.receiveShadow = true;
 
+        Cuarto1.push(roof);
+
     // Create 4 Lights
         var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
         pointLight.position.set(45, 20, 45);
         pointLight.castShadow = true;
         
         scene.add(pointLight);
+        Cuarto1.push(pointLight)
 
         var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
         pointLight.position.set(-45, 20, 45);
         pointLight.castShadow = true;
         
         scene.add(pointLight);
-
+        Cuarto1.push(pointLight)
 
         var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
         pointLight.position.set(45, 20, -45);
         pointLight.castShadow = true;
         
         scene.add(pointLight);
-
+        Cuarto1.push(pointLight)
 
         var pointLight = new THREE.PointLight (0xffff33, 0.9, 90);
         pointLight.position.set(-45, 20, -45);
         pointLight.castShadow = true;
         
         scene.add(pointLight);
+        Cuarto1.push(pointLight)
 
         var pointLight = new THREE.PointLight (0xffff33, 0.9, 50);
         pointLight.position.set(0, 20, 0);
         pointLight.castShadow = true;
         
         scene.add(pointLight);
+        Cuarto1.push(pointLight)
 
     loadDesk();
     loadBookCase();
+    loadClock();
 }
 
 function loadDesk(){
@@ -359,14 +409,78 @@ function loadDesk(){
                     }
                 } );
                         
-                desk = object;
-                desk.scale.set(.2,.2,.2);
-                desk.position.z = 0;
-                desk.position.x = 45;
-                desk.position.y = 0;
-                //enemyShip.rotation.y = Math.PI/2;
+                object.scale.set(.2,.2,.2);
+                object.position.z = 0;
+                object.position.x = 45;
+                object.position.y = 0;
                 
-                scene.add(desk);
+                scene.add(object);
+                Cuarto1.push(object)
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+}
+
+function loadClock(){
+
+
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/grandfatherclock/grandfatherclock.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/grandfatherclock/grandfatherclock.obj',
+
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(2,2,2);
+                object.position.z = 49;
+                object.position.x = 0;
+                object.position.y = 0;
+                object.rotation.y = Math.PI;
+                
+                scene.add(object);
+                Cuarto1.push(object)
+                
             },
             function ( xhr ) {
 
@@ -409,14 +523,14 @@ function loadBookCase(){
                 }
             } );
                     
-            desk = object;
-            desk.scale.set(.15,.15,.15);
-            desk.position.z = -50;
-            desk.position.x = 0;
-            desk.position.y = -3;
-            //enemyShip.rotation.y = Math.PI/2;
+            object.scale.set(.15,.15,.15);
+            object.position.z = -52;
+            object.position.x = 0;
+            object.position.y = -2;
+           
             
-            scene.add(desk);
+            scene.add(object);
+            Cuarto1.push(object)
         },
         function ( xhr ) {
 
@@ -469,7 +583,6 @@ function playAnimations()
 
 THREE.PointerLockControls = function ( camera, domElement ) {
 
-    console.log("CONTROLES")
 
 	var scope = this;
 
@@ -488,8 +601,6 @@ THREE.PointerLockControls = function ( camera, domElement ) {
 	var PI_2 = Math.PI / 2;
 
 	function onMouseMove( event ) {
-
-        console.log("Moviendo mouse")
 
 		if ( scope.isLocked === false ) return;
 
