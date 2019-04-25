@@ -21,6 +21,7 @@
 <script src="libs/three.js/loaders/MTLLoader.js"></script>
 <script src="./libs/three.js/loaders/FBXLoader.js"></script>	
 <script src="./libs/three.js/loaders/inflate.min.js"></script>
+<script src="./libs/audio/Audio.js"></script>
 
 <script src="libs/tween.js/tween.js"></script>
 <script src="libs/keyframe.js/keyframe.js"></script>
@@ -44,7 +45,7 @@
 				//initControls();
 				
 				// create the animations
-				//playAnimations();
+				//ClockAnimations();
 				
 				// Run the run loop
 				run();
@@ -61,7 +62,7 @@
 		<div id="instructions">
 			<span style="font-size:40px">Click to play</span>
 			<br />
-			(W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+			(W, A, S, D = Move, E = Action, SPACE = Jump, MOUSE = Look around)
 		</div>
 
 	</div>
@@ -69,5 +70,15 @@
 	<div id="container">
 	<canvas id="webglcanvas" ></canvas>
 	
+	<audio src="audio/atmospher1.mp3" id="audio_atm" loop="loop" autoplay="autoplay"></audio>
+
+	<script type="text/javascript">
+		window.onload=function(){
+			document.getElementById("audio_atm").volume = 0.1;
+			document.getElementById("audio_atm").play();
+		}
+
+	</script>
+
 </body>
 </html>

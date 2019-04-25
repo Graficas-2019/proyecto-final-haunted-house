@@ -8,7 +8,21 @@ floor = null,
 roof = null,
 wall = null;
 
-var mouse = new THREE.Vector3(), INTERSECTED, CLICKED;  
+// objects in room 1
+var clockRoom1 = null, 
+deskRoom1 = null, 
+bookCaseRoom1 = null;
+var clockGroup = new THREE.Object3D;
+var duration = 1500; // ms
+
+var animatorClock = null;
+var loopAnimation = false;
+
+var mouse = new THREE.Vector3(), INTERSECTED, CLICKED; 
+
+// Audio
+var listener = new THREE.AudioListener();
+var sound = new THREE.Audio( listener );
 
 // Movement
 var moveForward = false;
@@ -28,8 +42,6 @@ var objects = [];
 
 var Cuarto1 = [];
 
-var floorAnimator = null;
-var animateFloor = true;
 
 var prevTime = performance.now();
 var raycaster = new THREE.Raycaster();
@@ -70,12 +82,17 @@ function animate() {
             canJump = true;
         }
         prevTime = time;
-
-        if (action){
-            console.log("ACTION")
-        }
     }
     
+    if (clockRoom1.moving){
+
+
+        if (!animatorClock.running){
+            sound.stop();
+            clockRoom1.moving = false;
+        }
+
+    }
 }
 
 
@@ -156,16 +173,21 @@ function createScene(canvas)
                 // find intersections
                 raycaster.set(origin, lookAtVector)
 
-                var intersects = raycaster.intersectObjects( scene.children );
-                console.log(intersects.length)
+                var intersects = raycaster.intersectObjects( scene.children, true );
 
                 if ( intersects.length > 0 ) 
                 {
-                   
-                    for ( var i = 0; i < intersects.length; i++ ) {
+                    
+                    if (intersects[0].object.name == "clock body_clock texture"){
 
-                        console.log(intersects[i].object.name)
-                
+                        for(var i = 0; i<= animatorClock.interps.length -1; i++)
+                        {
+                            animatorClock.interps[0].target = clockGroup.position
+                            clockRoom1.moving = true;
+                            animatorClock.start();
+                            sound.play();
+                        }
+
                     }
                 }
 
@@ -211,6 +233,12 @@ function createScene(canvas)
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     //
     window.addEventListener( 'resize', onWindowResize, false );
+
+    ClockAnimations();
+
+    camera.add( listener ); 
+
+    loadClockAudio();
 }
 
 function CreateRoom1(){
@@ -414,8 +442,12 @@ function loadDesk(){
                 object.position.x = 45;
                 object.position.y = 0;
                 
-                scene.add(object);
-                Cuarto1.push(object)
+                object.collider = new THREE.Box3().setFromObject(object)
+
+                deskRoom1 = object;
+
+                scene.add(deskRoom1);
+                Cuarto1.push(deskRoom1)
             },
             function ( xhr ) {
 
@@ -477,9 +509,15 @@ function loadClock(){
                 object.position.x = 0;
                 object.position.y = 0;
                 object.rotation.y = Math.PI;
+
+                object.collider = new THREE.Box3().setFromObject(object)
                 
-                scene.add(object);
-                Cuarto1.push(object)
+                clockRoom1 = object;
+                clockRoom1.moving = false;
+                clockGroup.add(clockRoom1)
+
+                scene.add(clockGroup);
+                Cuarto1.push(clockRoom1);
                 
             },
             function ( xhr ) {
@@ -528,9 +566,12 @@ function loadBookCase(){
             object.position.x = 0;
             object.position.y = -2;
            
+            object.collider = new THREE.Box3().setFromObject(object)
             
-            scene.add(object);
-            Cuarto1.push(object)
+            bookCaseRoom1 = object
+
+            scene.add(bookCaseRoom1);
+            Cuarto1.push(bookCaseRoom1)
         },
         function ( xhr ) {
 
@@ -549,6 +590,19 @@ function loadBookCase(){
 
 }
 
+function loadClockAudio(){
+
+    var audioLoader = new THREE.AudioLoader();
+    audioLoader.load( './audio/wood.wav', function( buffer ) {
+
+        console.log("playin sound");
+        sound.setBuffer( buffer );
+        sound.setLoop( false );
+        sound.setVolume( 0.5 );
+});
+
+}
+
 function onWindowResize() 
 {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -556,29 +610,33 @@ function onWindowResize()
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
-function playAnimations()
+function ClockAnimations()
 {
 
-    if (animateFloor)
-    {
-        floorAnimator = new KF.KeyFrameAnimator;
-        floorAnimator.init({ 
-            interps:
-                [
-                    { 
-                        keys:[0, 1], 
-                        values:[
-                                { x : 0, y : 0 },
-                                { x : -3, y : 0 },
-                                ],
-                        target:floor.material.map.offset
-                    },
-                ],
-            loop: loopAnimation,
-            duration:duration,
-        });
-        //floorAnimator.start();
-    }
+   
+    animatorClock = new KF.KeyFrameAnimator;
+    animatorClock.init({ 
+        interps:
+            [
+                { 
+                    keys:[0, 1], 
+                    values:[
+                            { x : 0, y : 0 },
+                            { x : -5, y : 0 },
+                            ],
+                },
+                {
+                    keys:[0, 1], 
+                    values:[
+                            true,
+                            false
+                        ],
+                }
+            ],
+        loop: loopAnimation,
+        duration:duration,
+    });
+
 }
 
 THREE.PointerLockControls = function ( camera, domElement ) {
