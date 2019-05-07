@@ -60,6 +60,10 @@ var raycaster = new THREE.Raycaster();
 var vertex = new THREE.Vector3();
 var color = new THREE.Color();
 
+// WORLD
+
+var world = new CANNON.World();
+world.gravity.set(0, 0, -9.82);
 
 
 function animate() {
@@ -123,6 +127,7 @@ function animate() {
             if (controls.getObject().position.z <= -30) 
             {
                 DeleteRoom1();
+                //CreateRoom2();
                 Player.room = "2";
             }
         }
@@ -135,7 +140,7 @@ function animate() {
 
 
         if (controls.getObject().position.z >= -31.5){controls.getObject().position.z = -32}
-        if (controls.getObject().position.z <= -128.5){controls.getObject().position.z = -128}
+        //if (controls.getObject().position.z <= -128.5){controls.getObject().position.z = -128}
         if (controls.getObject().position.x >= 29){controls.getObject().position.x = 28.5}
         if (controls.getObject().position.x <= 1){controls.getObject().position.x = 1.5}
 
@@ -939,6 +944,7 @@ function DeleteRoom1(){
         scene.remove(Cuarto1[i]);
     }
 }
+
 // Hall 1 functions
 
 function CreateHall1(){
@@ -1077,6 +1083,7 @@ function CreateHall1(){
         Hall1.push(wall);
 
     loadScreamAudio();
+    loadOpenDoor2();
 }
 
 function loadScreamAudio(){
@@ -1116,13 +1123,60 @@ function loadJumpScare(){
 
 }
 
+function loadOpenDoor2(){
+
+    var map = new THREE.TextureLoader().load("images/portal2.png");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10,20);
+
+    var color = 0xffffff;
+
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(10, 16, 50, 50);
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh.position.y = 8;
+    mesh.position.z = -129.5;
+    mesh.position.x = 15;
+
+
+    // Add the mesh to our group
+    scene.add( mesh );
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+
+    Hall1.push(mesh);
+
+}
+
+function DeleteHall1(){
+
+    for (i = 0; i < Hall1.length; i++){
+
+        scene.remove(Hall1[i]);
+    }
+}
+
+// Room 2 functions
+
+function CreateRoom2(){
+
+    // Create floor
+    var groundBody = new CANNON.body({
+        mass : 0,
+        position: new CANNON.Vector3(0,-135,0)
+    });
+    var groundShape = new CANNON.PlaneGeometry();
+    groundBody.addShape(groundShape);
+    world.addBody(groundBody);
+
+}
+
 function onWindowResize() 
 {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
-
 
 
 THREE.PointerLockControls = function ( camera, domElement ) {
