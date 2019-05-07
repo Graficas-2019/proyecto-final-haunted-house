@@ -1,0 +1,96 @@
+newmtl LuxuryLivingRoomFurnitureSet:CouchCushion3SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:CouchCushion3SG1
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:CouchCushionSG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:SofaArm5SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:SofaArmSG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:SofaBottomCushion1SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:SofaDetailing564SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:SofaFrame2SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:SofaLegsUpperPartSG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:LuxuryLivingRoomFurnitureSet:SofaSideCushion2SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:SofaArm3SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:SofaArm4SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:SofaDetailingSG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:SofaFrameSG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:SofaLegsSG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl LuxuryLivingRoomFurnitureSet:SofaSideCushionSG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
