@@ -153,13 +153,24 @@ function animate() {
             loadJumpScare();            
         }
 
-        if (controls.getObject().position.z >= -130){
+        if (controls.getObject().position.z <= -130){
 
-            Player.room == "3"
+            console.log("ROOM 3")
+            Player.room = "3";
             DeleteHall1();
 
         }
 
+    }
+
+    if (Player.room == "3"){
+
+        if (controls.getObject().position.z >= -130.5){controls.getObject().position.z = -131}
+        if (controls.getObject().position.z <= -188.5){controls.getObject().position.z = -188}
+        if (controls.getObject().position.x >= 29){controls.getObject().position.x = 28.5}
+        if (controls.getObject().position.x <= 1){controls.getObject().position.x = 1.5}
+
+        
     }
     
 }
@@ -1290,7 +1301,60 @@ function CreateRoom2(){
         roof.receiveShadow = true;
 
         Cuarto2.push(roof);
-        wall.position.z = -160
+        roof.position.z = -160
+
+    LoadBox()
+
+}
+
+function LoadBox(){
+    if(!objLoader)
+
+        objLoader = new THREE.OBJLoader();
+
+    objLoader.load(
+        'models/Box/box_obj.obj',
+
+        function(object)
+        {
+            var texture = new THREE.TextureLoader().load('models/box/diffuse.jpg');
+            var normalMap = new THREE.TextureLoader().load('models/box/Box_lowNormalsMap.jpg');       
+            object.traverse( function ( child ) 
+            {
+                if ( child instanceof THREE.Mesh ) 
+                {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    child.material.map = texture;
+                    child.material.normalMap = normalMap;
+                }
+            } );
+                    
+            object.scale.set(.1,.1,.1);
+            object.position.z = -150;
+            object.position.x = 0;
+            object.position.y = -5;
+        
+            
+            bookCaseRoom1 = object
+
+            scene.add(bookCaseRoom1);
+            Cuarto2.push(bookCaseRoom1)
+        },
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            building_loaded = ( xhr.loaded / xhr.total * 100 )
+    
+        },
+        // called when loading has errors
+        function ( error ) {
+    
+            console.log( 'An error happened' );
+    
+        }
+    );
 
 }
 
