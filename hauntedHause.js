@@ -51,19 +51,17 @@ var objects = [];
 
 var Cuarto1 = [];
 var Hall1 = [];
+var Cuarto2 = [];
 
 var walls = [];
-
 
 var prevTime = performance.now();
 var raycaster = new THREE.Raycaster();
 var vertex = new THREE.Vector3();
 var color = new THREE.Color();
 
-// WORLD
-
 var world = new CANNON.World();
-world.gravity.set(0, 0, -9.82);
+var timeStep = 1.0 / 60.0;
 
 
 function animate() {
@@ -113,6 +111,8 @@ function animate() {
 
     if (Player.room == "1"){
 
+        world.step(timeStep);
+
         if (controls.getObject().position.x >= 25.5){controls.getObject().position.x = 25}
         if (controls.getObject().position.x <= -25.5){controls.getObject().position.x = -25}
         if (controls.getObject().position.z >= 25.5){controls.getObject().position.z = 25}
@@ -127,8 +127,10 @@ function animate() {
             if (controls.getObject().position.z <= -30) 
             {
                 DeleteRoom1();
-                //CreateRoom2();
+                console.log("CREATING ROOM 2");
                 Player.room = "2";
+                CreateRoom2();
+                
             }
         }
     }
@@ -149,6 +151,13 @@ function animate() {
             ScreamSound.play();
             srcreamHall1 = false;
             loadJumpScare();            
+        }
+
+        if (controls.getObject().position.z >= -130){
+
+            Player.room == "3"
+            DeleteHall1();
+
         }
 
     }
@@ -298,7 +307,7 @@ function createScene(canvas)
     document.addEventListener( 'keyup', onKeyUp, false );
     raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 
-    var pointLight = new THREE.PointLight (0xffffff, 0.4, 40);
+    var pointLight = new THREE.PointLight (0xffffff, .9, 60);
     pointLight.position.set(15, 20, -60);
     pointLight.castShadow = true;
 
@@ -1072,7 +1081,7 @@ function CreateHall1(){
         wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
         wall.rotation.z = -Math.PI / 2;
         wall.position.x = 15;
-        wall.position.z = -130;
+        wall.position.z = -129.5;
         wall.position.y = 12.5;
 
         // Add the mesh to our group
@@ -1160,14 +1169,128 @@ function DeleteHall1(){
 
 function CreateRoom2(){
 
-    // Create floor
-    var groundBody = new CANNON.body({
-        mass : 0,
-        position: new CANNON.Vector3(0,-135,0)
-    });
-    var groundShape = new CANNON.PlaneGeometry();
-    groundBody.addShape(groundShape);
-    world.addBody(groundBody);
+    // Create floor texture map
+        var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.z = -160
+
+        // Add the mesh to our group
+        scene.add( floor );
+        floor.castShadow = false;
+        floor.receiveShadow = true;
+
+        Cuarto2.push(floor);
+
+    // Create Wall 1 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+        
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.position.z = -190
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Cuarto2.push(wall)
+
+    // Create Wall 2 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.position.z = -130
+
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        walls.push(wall)
+        Cuarto2.push(wall)
+
+    // Create Wall 3 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = 30
+        wall.position.z = -160
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        walls.push(wall)
+        Cuarto2.push(wall)
+
+    // Create Wall 4 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = -30
+        wall.position.z = -160
+
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        walls.push(wall)
+        Cuarto2.push(wall);
+
+    // Create roof texture map
+   
+        var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        roof.rotation.x = -Math.PI / 2;
+        roof.position.y = 25
+
+
+        // Add the mesh to our group
+        scene.add( roof );
+        roof.castShadow = false;
+        roof.receiveShadow = true;
+
+        Cuarto2.push(roof);
+        wall.position.z = -160
 
 }
 
