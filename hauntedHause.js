@@ -1,20 +1,20 @@
 
-var renderer = null, 
-scene = null, 
-camera = null,
-root = null,
-group = null,
-floor = null,
-roof = null,
-wall = null,
-door1 = null;
+var renderer = null,
+    scene = null,
+    camera = null,
+    root = null,
+    group = null,
+    floor = null,
+    roof = null,
+    wall = null,
+    door1 = null;
 
 var Player = new THREE.Object3D;
 
 // objects in room 1
-var clockRoom1 = null, 
-deskRoom1 = null, 
-bookCaseRoom1 = null;
+var clockRoom1 = null,
+    deskRoom1 = null,
+    bookCaseRoom1 = null;
 var clockGroup = new THREE.Object3D;
 var duration = 1500; // ms
 var keyRoom1 = null;
@@ -23,14 +23,14 @@ var animatorClock = null;
 var animatorKey = null;
 var loopAnimation = false;
 
-var mouse = new THREE.Vector3(), INTERSECTED, CLICKED; 
+var mouse = new THREE.Vector3(), INTERSECTED, CLICKED;
 var hallLight = null;
 
 // Audio
 var listener = new THREE.AudioListener();
-var sound = new THREE.Audio( listener );
-var keySound = new THREE.Audio( listener );
-var ScreamSound = new THREE.Audio( listener );
+var sound = new THREE.Audio(listener);
+var keySound = new THREE.Audio(listener);
+var ScreamSound = new THREE.Audio(listener);
 
 srcreamHall1 = true;
 
@@ -63,7 +63,7 @@ var walls = [];
 var Fan = null;
 var Gun = null;
 var FakeGun = null;
-var Key_3 = null; 
+var Key_3 = null;
 
 var prevTime = performance.now();
 var raycaster = new THREE.Raycaster();
@@ -75,95 +75,94 @@ var timeStep = 1.0 / 60.0;
 
 
 function animate() {
-    
 
-    requestAnimationFrame( animate );
-    
-    if ( controls.isLocked === true ) {
+
+    requestAnimationFrame(animate);
+
+    if (controls.isLocked === true) {
 
         var time = performance.now();
-        var delta = ( time - prevTime ) / 1000;
+        var delta = (time - prevTime) / 1000;
 
         velocity.x -= velocity.x * 10.0 * delta;
         velocity.z -= velocity.z * 10.0 * delta;
         velocity.y -= 9.8 * 80.0 * delta; // 100.0 = mass
 
-        direction.z = Number( moveForward ) - Number( moveBackward );
-        direction.x = Number( moveLeft ) - Number( moveRight );
+        direction.z = Number(moveForward) - Number(moveBackward);
+        direction.x = Number(moveLeft) - Number(moveRight);
 
         direction.normalize(); // this ensures consistent movements in all directions
 
-        if ( moveForward || moveBackward ) velocity.z -= direction.z * 180.0 * delta;
-        if ( moveLeft || moveRight ) velocity.x -= direction.x * 180.0 * delta;
+        if (moveForward || moveBackward) velocity.z -= direction.z * 180.0 * delta;
+        if (moveLeft || moveRight) velocity.x -= direction.x * 180.0 * delta;
 
-        if (Player.crouch){
+        if (Player.crouch) {
 
-            velocity.z /=1.001;
-            velocity.x /=1.001;
+            velocity.z /= 1.001;
+            velocity.x /= 1.001;
 
         }
 
-        controls.getObject().translateX( velocity.x * delta );
-        controls.getObject().translateZ( velocity.z * delta );
-        
+        controls.getObject().translateX(velocity.x * delta);
+        controls.getObject().translateZ(velocity.z * delta);
+
         velocity.y = 0;
-        
+
         prevTime = time;
     }
-    
-    if (clockRoom1.moving){
+
+    if (clockRoom1.moving) {
 
 
-        if (!animatorClock.running){
+        if (!animatorClock.running) {
             sound.stop();
             clockRoom1.moving = false;
         }
 
     }
-    
+
     hallLight.position.x = controls.getObject().position.x;
     hallLight.position.z = controls.getObject().position.z;
-    
-
-    if (Player.room == "1"){
 
 
-        if (controls.getObject().position.x >= 25.5){controls.getObject().position.x = 25}
-        if (controls.getObject().position.x <= -25.5){controls.getObject().position.x = -25}
-        if (controls.getObject().position.z >= 25.5){controls.getObject().position.z = 25}
+    if (Player.room == "1") {
 
-        if (!Player.key1){
 
-            if (controls.getObject().position.z <= -25.5){controls.getObject().position.z = -25}
+        if (controls.getObject().position.x >= 25.5) { controls.getObject().position.x = 25 }
+        if (controls.getObject().position.x <= -25.5) { controls.getObject().position.x = -25 }
+        if (controls.getObject().position.z >= 25.5) { controls.getObject().position.z = 25 }
+
+        if (!Player.key1) {
+
+            if (controls.getObject().position.z <= -25.5) { controls.getObject().position.z = -25 }
         }
-        else{
-            
-            if (controls.getObject().position.z <= -25.5 && controls.getObject().position.x <= 10 ){controls.getObject().position.z = -25}
-            if (controls.getObject().position.z <= -30) 
-            {
+        else {
+
+            if (controls.getObject().position.z <= -25.5 && controls.getObject().position.x <= 10) { controls.getObject().position.z = -25 }
+            if (controls.getObject().position.z <= -30) {
                 DeleteRoom1();
                 Player.room = "2";
                 CreateRoom2();
-                
+
             }
         }
     }
 
-    if (Player.room == "2"){
+    if (Player.room == "2") {
 
-        if (controls.getObject().position.z >= -31.5){controls.getObject().position.z = -32}
+        if (controls.getObject().position.z >= -31.5) { controls.getObject().position.z = -32 }
         //if (controls.getObject().position.z <= -128.5){controls.getObject().position.z = -128}
-        if (controls.getObject().position.x >= 29){controls.getObject().position.x = 28.5}
-        if (controls.getObject().position.x <= 1){controls.getObject().position.x = 1.5}
+        if (controls.getObject().position.x >= 29) { controls.getObject().position.x = 28.5 }
+        if (controls.getObject().position.x <= 1) { controls.getObject().position.x = 1.5 }
 
-        if(controls.getObject().position.z <= -50 && srcreamHall1){
+        if (controls.getObject().position.z <= -50 && srcreamHall1) {
 
             ScreamSound.play();
             srcreamHall1 = false;
-            loadJumpScare();            
+            loadJumpScare();
         }
 
-        if (controls.getObject().position.z <= -130){
+        if (controls.getObject().position.z <= -130) {
 
             Player.room = "3";
             DeleteHall1();
@@ -173,95 +172,93 @@ function animate() {
 
     }
 
-    if (Player.room == "3"){
+    if (Player.room == "3") {
 
         //if (controls.getObject().position.z >= -130.5){controls.getObject().position.z = -131}
-        if (controls.getObject().position.z <= -188.5){controls.getObject().position.z = -188}
-        if (controls.getObject().position.x >= 25.5){controls.getObject().position.x = 25}
-        if (controls.getObject().position.x <= -25.5){controls.getObject().position.x = -25}
+        if (controls.getObject().position.z <= -188.5) { controls.getObject().position.z = -188 }
+        if (controls.getObject().position.x >= 25.5) { controls.getObject().position.x = 25 }
+        if (controls.getObject().position.x <= -25.5) { controls.getObject().position.x = -25 }
 
-        if (!Player.key2){
+        if (!Player.key2) {
 
-            if (controls.getObject().position.z >= -130.5){controls.getObject().position.z = -131}
+            if (controls.getObject().position.z >= -130.5) { controls.getObject().position.z = -131 }
         }
-        else{
-            
-            if (controls.getObject().position.z >= -130.5 && controls.getObject().position.x <= 10 ){
+        else {
+
+            if (controls.getObject().position.z >= -130.5 && controls.getObject().position.x <= 10) {
                 controls.getObject().position.z = -131
             }
-            if (controls.getObject().position.z >= -130) 
-            {
+            if (controls.getObject().position.z >= -130) {
                 DeleteRoom2();
                 Player.room = "4";
                 createRoom3();
-                
+
             }
         }
 
-        for (i = 0; i < Boxes.length; i++){
+        for (i = 0; i < Boxes.length; i++) {
 
-            if (Boxes[i].grab){
+            if (Boxes[i].grab) {
 
                 scene.remove(Boxes[i])
             }
 
         }
-        
+
     }
-    
-    if (Player.room == "4"){
+
+    if (Player.room == "4") {
 
         //if (controls.getObject().position.z >= -31.5){controls.getObject().position.z = -32}
-        if (controls.getObject().position.z <= -128.5){controls.getObject().position.z = -128}
-        if (controls.getObject().position.x >= 29){controls.getObject().position.x = 28.5}
-        if (controls.getObject().position.x <= 1){controls.getObject().position.x = 1.5}
+        if (controls.getObject().position.z <= -128.5) { controls.getObject().position.z = -128 }
+        if (controls.getObject().position.x >= 29) { controls.getObject().position.x = 28.5 }
+        if (controls.getObject().position.x <= 1) { controls.getObject().position.x = 1.5 }
 
-        if (controls.getObject().position.z >= -30){
+        if (controls.getObject().position.z >= -30) {
 
             Player.room = "5";
             DeleteHall2();
         }
     }
 
-    if (Player.room == "5"){
+    if (Player.room == "5") {
 
 
-        if (controls.getObject().position.x >= 25.5){controls.getObject().position.x = 25}
-        if (controls.getObject().position.x <= -25.5){controls.getObject().position.x = -25}
-        if (controls.getObject().position.z >= 25.5){controls.getObject().position.z = 25}
+        if (controls.getObject().position.x >= 25.5) { controls.getObject().position.x = 25 }
+        if (controls.getObject().position.x <= -25.5) { controls.getObject().position.x = -25 }
+        if (controls.getObject().position.z >= 25.5) { controls.getObject().position.z = 25 }
 
-        if (!Player.key3){
+        if (!Player.key3) {
 
-            if (controls.getObject().position.z <= -25.5){controls.getObject().position.z = -25}
+            if (controls.getObject().position.z <= -25.5) { controls.getObject().position.z = -25 }
         }
-        
+
     }
 
-    var delta = ( time - prevTime ) / 1000;
+    var delta = (time - prevTime) / 1000;
 
-    if (Bullets.length > 0){
+    if (Bullets.length > 0) {
 
-        for (bullet of Bullets){
+        for (bullet of Bullets) {
 
-            if (bullet.position.x > 30 || bullet.position.x < -30 || bullet.position.y < 0 || bullet.position.y > 25 || bullet.position.z > 30 || bullet.position.z < -30){
+            if (bullet.position.x > 30 || bullet.position.x < -30 || bullet.position.y < 0 || bullet.position.y > 25 || bullet.position.z > 30 || bullet.position.z < -30) {
                 Bullets.shift();
                 scene.remove(bullet)
             }
 
             else {
 
-                bullet.position.x += bullet.moveto.x/70;
-                bullet.position.y += bullet.moveto.y/70;
-                bullet.position.z += bullet.moveto.z/70;
+                bullet.position.x += bullet.moveto.x / 70;
+                bullet.position.y += bullet.moveto.y / 70;
+                bullet.position.z += bullet.moveto.z / 70;
 
             }
 
             bullet.collider = new THREE.Box3().setFromObject(bullet)
 
-            if (bullet.collider.intersectsBox(Fan.collider) && !Key_3.drop){
+            if (bullet.collider.intersectsBox(Fan.collider) && !Key_3.drop) {
 
-                for(var i = 0; i<= animatorKey.interps.length -1; i++)
-                {
+                for (var i = 0; i <= animatorKey.interps.length - 1; i++) {
                     animatorKey.interps[0].target = Key_3.position
                     animatorKey.start();
 
@@ -277,25 +274,23 @@ function animate() {
 }
 
 
-function run()
-{
-    requestAnimationFrame(function() { run(); });
+function run() {
+    requestAnimationFrame(function () { run(); });
 
-        renderer.render( scene, camera );
-    
-        // Update the animations
-        KF.update();
-    
-        //floorAnimator.start();
-        animate();
+    renderer.render(scene, camera);
 
-        // Update the camera controller
-        //orbitControls.update();
-        
+    // Update the animations
+    KF.update();
+
+    //floorAnimator.start();
+    animate();
+
+    // Update the camera controller
+    //orbitControls.update();
+
 }
 
-function createScene(canvas) 
-{
+function createScene(canvas) {
     Player.room = "1";
     Player.key1 = false;
     Player.key2 = false;
@@ -303,35 +298,35 @@ function createScene(canvas)
     Player.crouch = false;
     Player.gun = false;
 
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 ); 
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
     scene = new THREE.Scene();
-    controls = new THREE.PointerLockControls( Player );
+    controls = new THREE.PointerLockControls(Player);
 
     Player.add(camera)
 
-    var blocker = document.getElementById( 'blocker' );
-    var instructions = document.getElementById( 'instructions' );
+    var blocker = document.getElementById('blocker');
+    var instructions = document.getElementById('instructions');
 
-    instructions.addEventListener( 'click', function () {
+    instructions.addEventListener('click', function () {
         controls.lock();
-    }, false );
+    }, false);
 
-    controls.addEventListener( 'lock', function () {
+    controls.addEventListener('lock', function () {
         instructions.style.display = 'none';
         blocker.style.display = 'none';
-    } );
+    });
 
-    controls.addEventListener( 'unlock', function () {
+    controls.addEventListener('unlock', function () {
         blocker.style.display = 'block';
         instructions.style.display = '';
-    } );
+    });
 
-    scene.add( controls.getObject() );
+    scene.add(controls.getObject());
 
-    var onKeyDown = function ( event ) {
-        switch ( event.keyCode ) {
+    var onKeyDown = function (event) {
+        switch (event.keyCode) {
             case 17: // ctrl
-                if (!Player.crouch){
+                if (!Player.crouch) {
 
                     controls.getObject().position.y = 6
                     Player.crouch = true;
@@ -359,7 +354,7 @@ function createScene(canvas)
                 moveRight = true;
                 break;
             case 32: // space
-                if(Player.gun){
+                if (Player.gun) {
 
                     ShootBullet();
                 }
@@ -367,7 +362,7 @@ function createScene(canvas)
             case 69: // e
 
                 // Origin from the raycast
-                var origin = new THREE.Vector3( controls.getObject().position.x ,controls.getObject().position.y ,controls.getObject().position.z);
+                var origin = new THREE.Vector3(controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z);
 
                 // Direction of the camera
                 var lookAtVector = new THREE.Vector3;
@@ -375,19 +370,17 @@ function createScene(canvas)
                 // find intersections
                 raycaster.set(origin, lookAtVector)
 
-                if (Player.room == "1"){
+                if (Player.room == "1") {
 
-                    var intersects = raycaster.intersectObjects( scene.children, true );
+                    var intersects = raycaster.intersectObjects(scene.children, true);
 
-                    if ( intersects.length > 0 ) 
-                    {
-                        
-                        
-                        if (intersects[0].object.name == "clock body_clock texture"){
+                    if (intersects.length > 0) {
+
+
+                        if (intersects[0].object.name == "clock body_clock texture") {
 
                             loadKey();
-                            for(var i = 0; i<= animatorClock.interps.length -1; i++)
-                            {
+                            for (var i = 0; i <= animatorClock.interps.length - 1; i++) {
                                 animatorClock.interps[0].target = clockGroup.position
                                 clockRoom1.moving = true;
                                 animatorClock.start();
@@ -395,7 +388,7 @@ function createScene(canvas)
                             }
                         }
 
-                        if (intersects[0].object.name == "Key_B"){
+                        if (intersects[0].object.name == "Key_B") {
 
                             scene.remove(keyRoom1);
                             scene.remove(door1);
@@ -410,22 +403,22 @@ function createScene(canvas)
 
                 }
 
-                else if (Player.room == "3"){
+                else if (Player.room == "3") {
 
-                    var intersects = raycaster.intersectObjects( scene.children, true );
+                    var intersects = raycaster.intersectObjects(scene.children, true);
 
-                    if(intersects.length >0){
+                    if (intersects.length > 0) {
 
-                        if (!intersects[0].object.parent.grab){
+                        if (!intersects[0].object.parent.grab) {
 
                             intersects[0].object.parent.grab = true;
                         }
                         else {
-                            
+
                             intersects[0].object.parent.grab = false;
                         }
-                        
-                        if (intersects[0].object.parent.move){
+
+                        if (intersects[0].object.parent.move) {
 
                             animatorClock.interps[0].target = intersects[0].object.position;
                             animatorClock.start();
@@ -433,7 +426,7 @@ function createScene(canvas)
 
                         }
 
-                        if (intersects[0].object.name == "Key_B"){
+                        if (intersects[0].object.name == "Key_B") {
 
                             scene.remove(keyRoom1);
                             scene.remove(door1);
@@ -446,30 +439,33 @@ function createScene(canvas)
                     }
                 }
 
-                else if (Player.room == "5"){
+                else if (Player.room == "5") {
 
-                    var intersects = raycaster.intersectObjects( scene.children, true );
+                    var intersects = raycaster.intersectObjects(scene.children, true);
 
-                    if(intersects.length >0){
+                    if (intersects.length > 0) {
 
                         console.log(intersects[0].object)
-                    
 
-                        if(intersects[0].object.parent.tag == "gun"){
+
+                        if (intersects[0].object.parent.tag == "gun") {
 
                             scene.remove(FakeGun)
                             Gun.visible = true;
                             Player.gun = true;
 
                         }
-                        else if (intersects[0].object.name == "Key_B"){
+                        else if (intersects[0].object.name == "Key_B") {
 
-                            console.log("YOU WON")
+                            console.log("YOU WON");
                             scene.remove(Key_3);
                             CreateSkybox();
                             DeleteRoom3();
-                            document.getElementById("KEYS").innerHTML = "KEYS: 3";  
+                            document.getElementById("KEYS").innerHTML = "KEYS: 3";
+                            document.getElementById("youWon").innerHTML = "You Won :D, Press F5";
                             document.getElementById("audio_atm").stop();
+
+                            
 
                         }
                     }
@@ -478,8 +474,8 @@ function createScene(canvas)
                 break;
         }
     };
-    var onKeyUp = function ( event ) {
-        switch ( event.keyCode ) {
+    var onKeyUp = function (event) {
+        switch (event.keyCode) {
             case 38: // up
             case 87: // w
                 moveForward = false;
@@ -501,34 +497,34 @@ function createScene(canvas)
                 break;
         }
     };
-    document.addEventListener( 'keydown', onKeyDown, false );
-    document.addEventListener( 'keyup', onKeyUp, false );
-    raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
+    document.addEventListener('keydown', onKeyDown, false);
+    document.addEventListener('keyup', onKeyUp, false);
+    raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 10);
 
-    var pointLight = new THREE.PointLight (0xffffff, 1, 60);
+    var pointLight = new THREE.PointLight(0xffffff, 1, 60);
     pointLight.position.set(15, 20, -60);
     pointLight.castShadow = true;
 
     hallLight = pointLight;
-    
+
     scene.add(hallLight);
 
     CreateRoom1();
-  
-    renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
-    renderer.setSize(window.innerWidth -40, window.innerHeight -40);
-    document.body.appendChild( renderer.domElement );
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setSize(window.innerWidth - 40, window.innerHeight - 40);
+    document.body.appendChild(renderer.domElement);
     // Turn on shadows
     renderer.shadowMap.enabled = true;
     // Options are THREE.BasicShadowMap, THREE.PCFShadowMap, PCFSoftShadowMap
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     //
-    window.addEventListener( 'resize', onWindowResize, false );
+    window.addEventListener('resize', onWindowResize, false);
 
     ClockAnimations();
     KeyAnimations();
 
-    camera.add( listener ); 
+    camera.add(listener);
 
     loadClockAudio();
     loadKeyAudio();
@@ -539,142 +535,142 @@ function createScene(canvas)
 
 // Room 1 functions
 
-function CreateRoom1(){ 
+function CreateRoom1() {
 
     // Create floor texture map
-        var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
-        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        floor.rotation.x = -Math.PI / 2;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    floor.rotation.x = -Math.PI / 2;
 
-        // Add the mesh to our group
-        scene.add( floor );
-        floor.castShadow = false;
-        floor.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(floor);
+    floor.castShadow = false;
+    floor.receiveShadow = true;
 
-        Cuarto1.push(floor);
+    Cuarto1.push(floor);
 
     // Create Wall 1 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
-        
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.position.z = 30
-        
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
 
-        walls.push(wall)
-        Cuarto1.push(wall)
-  
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.position.z = 30
+
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
+
+    walls.push(wall)
+    Cuarto1.push(wall)
+
     // Create Wall 2 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.position.z = -30
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.position.z = -30
 
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        walls.push(wall)
-        Cuarto1.push(wall)
+    walls.push(wall)
+    Cuarto1.push(wall)
 
     // Create Wall 3 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = 30
-        
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = 30
 
-        walls.push(wall)
-        Cuarto1.push(wall)
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
+
+    walls.push(wall)
+    Cuarto1.push(wall)
 
     // Create Wall 4 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = -30
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = -30
 
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        walls.push(wall)
-        Cuarto1.push(wall);
+    walls.push(wall)
+    Cuarto1.push(wall);
 
     // Create riddle 
 
-        var map = new THREE.TextureLoader().load("./images/acertijo.jpg");
-        geometry = new THREE.PlaneGeometry(20, 10, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    var map = new THREE.TextureLoader().load("./images/acertijo.jpg");
+    geometry = new THREE.PlaneGeometry(20, 10, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        wall.position.y = 14 
-        wall.position.x = -29.5
+    wall.position.y = 14
+    wall.position.x = -29.5
 
-        wall.rotation.y = Math.PI /2
+    wall.rotation.y = Math.PI / 2
 
-        scene.add( wall );
-        Cuarto1.push(wall);
+    scene.add(wall);
+    Cuarto1.push(wall);
 
     // Create roof texture map
-        var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
-        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        roof.rotation.x = -Math.PI / 2;
-        roof.position.y = 25
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+    roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    roof.rotation.x = -Math.PI / 2;
+    roof.position.y = 25
 
 
-        // Add the mesh to our group
-        scene.add( roof );
-        roof.castShadow = false;
-        roof.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(roof);
+    roof.castShadow = false;
+    roof.receiveShadow = true;
 
-        Cuarto1.push(roof);
+    Cuarto1.push(roof);
 
 
     loadBookCase();
@@ -683,431 +679,413 @@ function CreateRoom1(){
     loadDoor1();
 }
 
-function loadDesk(){
+function loadDesk() {
 
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/deskWorn_OBJ/deskWorn_OBJ.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/deskWorn_OBJ/deskWorn_OBJ.obj',
+            objLoader.load(
+                'models/deskWorn_OBJ/deskWorn_OBJ.obj',
 
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.2,.2,.2);
-                object.position.z = 0;
-                object.position.x = 25;
-                object.position.y = 0;
-                
-                object.collider = new THREE.Box3().setFromObject(object)
+                function (object) {
+                    //var texture = new THREE.TextureLoader().load('models/Tie_Fighter/texture.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                deskRoom1 = object;
+                    object.scale.set(.2, .2, .2);
+                    object.position.z = 0;
+                    object.position.x = 25;
+                    object.position.y = 0;
 
-                scene.add(deskRoom1);
-                Cuarto1.push(deskRoom1)
-            },
-            function ( xhr ) {
+                    object.collider = new THREE.Box3().setFromObject(object)
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    deskRoom1 = object;
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    scene.add(deskRoom1);
+                    Cuarto1.push(deskRoom1)
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 }
 
-function loadClock(){
+function loadClock() {
 
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/grandfatherclock/grandfatherclock.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/grandfatherclock/grandfatherclock.obj',
+            objLoader.load(
+                'models/grandfatherclock/grandfatherclock.obj',
 
-            function(object)
-            {
-                var texture = new THREE.TextureLoader().load('models/grandfatherclock/grandfatherclock_uv.bmp');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(2,2,2);
-                object.position.z = 29;
-                object.position.x = 0;
-                object.position.y = 0;
-                object.rotation.y = Math.PI;
+                function (object) {
+                    var texture = new THREE.TextureLoader().load('models/grandfatherclock/grandfatherclock_uv.bmp');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                object.collider = new THREE.Box3().setFromObject(object)
-                
-                clockRoom1 = object;
-                clockRoom1.moving = false;
-                clockGroup.add(clockRoom1)
+                    object.scale.set(2, 2, 2);
+                    object.position.z = 29;
+                    object.position.x = 0;
+                    object.position.y = 0;
+                    object.rotation.y = Math.PI;
 
-                scene.add(clockGroup);
-                Cuarto1.push(clockGroup);
-                
-            },
-            function ( xhr ) {
+                    object.collider = new THREE.Box3().setFromObject(object)
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    clockRoom1 = object;
+                    clockRoom1.moving = false;
+                    clockGroup.add(clockRoom1)
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    scene.add(clockGroup);
+                    Cuarto1.push(clockGroup);
+
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 }
 
-function loadBookCase(){
+function loadBookCase() {
 
-    if(!objLoader)
+    if (!objLoader)
 
         objLoader = new THREE.OBJLoader();
 
     objLoader.load(
         'models/BOOKCASE_MODEL/BOOKCASE_OBJ/SHELF_OBJ.obj',
 
-        function(object)
-        {
+        function (object) {
             var texture = new THREE.TextureLoader().load('models/BOOKCASE_MODEL/SHELF_TEXTURE.bmp');
             //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-            object.traverse( function ( child ) 
-            {
-                if ( child instanceof THREE.Mesh ) 
-                {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.material.map = texture;
                     //child.material.normalMap = normalMap;
                 }
-            } );
-                    
-            object.scale.set(.15,.15,.15);
+            });
+
+            object.scale.set(.15, .15, .15);
             object.position.z = -32;
             object.position.x = 0;
             object.position.y = -2;
-           
+
             object.collider = new THREE.Box3().setFromObject(object)
-            
+
             bookCaseRoom1 = object
 
             scene.add(bookCaseRoom1);
             Cuarto1.push(bookCaseRoom1)
         },
-        function ( xhr ) {
+        function (xhr) {
 
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
 
-            building_loaded = ( xhr.loaded / xhr.total * 100 )
-    
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
         },
         // called when loading has errors
-        function ( error ) {
-    
-            console.log( 'An error happened' );
-    
+        function (error) {
+
+            console.log('An error happened');
+
         }
     );
 
 }
 
-function loadClockAudio(){
+function loadClockAudio() {
 
     var audioLoader = new THREE.AudioLoader();
-    audioLoader.load( './audio/wood.wav', function( buffer ) {
+    audioLoader.load('./audio/wood.wav', function (buffer) {
 
         console.log("playin sound");
-        sound.setBuffer( buffer );
-        sound.setLoop( false );
-        sound.setVolume( 0.5 );
+        sound.setBuffer(buffer);
+        sound.setLoop(false);
+        sound.setVolume(0.5);
     });
 
 }
 
-function loadKeyAudio(){
+function loadKeyAudio() {
 
     var audioLoader = new THREE.AudioLoader();
-    audioLoader.load( './audio/keySound.wav', function( buffer ) {
+    audioLoader.load('./audio/keySound.wav', function (buffer) {
 
-        
-        keySound.setBuffer( buffer );
-        keySound.setLoop( false );
-        keySound.setVolume( 0.5 );
+
+        keySound.setBuffer(buffer);
+        keySound.setLoop(false);
+        keySound.setVolume(0.5);
     });
 
 }
 
-function loadSofa(){
+function loadSofa() {
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.obj',
+            objLoader.load(
+                'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.obj',
 
-            function(object)
-            {
-                var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.3,.3,.3);
-                object.position.z = 0;
-                object.position.x = -25;
-                object.position.y = 0;
-                object.rotation.y = Math.PI /2
+                function (object) {
+                    var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                scene.add(object);
-                Cuarto1.push(object)
-            },
-            function ( xhr ) {
+                    object.scale.set(.3, .3, .3);
+                    object.position.z = 0;
+                    object.position.x = -25;
+                    object.position.y = 0;
+                    object.rotation.y = Math.PI / 2
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    scene.add(object);
+                    Cuarto1.push(object)
+                },
+                function (xhr) {
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 }
 
-function loadKey(){
+function loadKey() {
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/Key_B/Key_B_02.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/Key_B/Key_B_02.obj',
+            objLoader.load(
+                'models/Key_B/Key_B_02.obj',
 
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.3,.3,.3);
-                object.position.z = 30;
-                object.position.x = 0;
-                object.position.y = 10;
-                
-                keyRoom1 = object;
+                function (object) {
+                    //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                scene.add(keyRoom1);
-                
-            },
-            function ( xhr ) {
+                    object.scale.set(.3, .3, .3);
+                    object.position.z = 30;
+                    object.position.x = 0;
+                    object.position.y = 10;
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    keyRoom1 = object;
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    scene.add(keyRoom1);
+
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 
 }
 
-function loadDoor1(){
-    if(!mtlLoader)
+function loadDoor1() {
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/InteriorDoorObj/InteriorDoor.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/InteriorDoorObj/InteriorDoor.obj',
+            objLoader.load(
+                'models/InteriorDoorObj/InteriorDoor.obj',
 
-            function(object)
-            {
-                var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.17,.17,.17);
-                object.position.z = -30;
-                object.position.x = 15;
-                object.position.y = 0;
-                
-                door1 = object
+                function (object) {
+                    var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                scene.add(door1);
-            },
-            function ( xhr ) {
+                    object.scale.set(.17, .17, .17);
+                    object.position.z = -30;
+                    object.position.x = 15;
+                    object.position.y = 0;
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    door1 = object
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    scene.add(door1);
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 }
 
-function loadOpenDoor1(){
+function loadOpenDoor1() {
 
     var map = new THREE.TextureLoader().load("images/portal2.png");
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
-    map.repeat.set(10,20);
+    map.repeat.set(10, 20);
 
     var color = 0xffffff;
 
     // Put in a ground plane to show off the lighting
     geometry = new THREE.PlaneGeometry(10, 16, 50, 50);
-    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
     mesh.position.y = 8;
     mesh.position.z = -29.5;
     mesh.position.x = 15;
 
 
     // Add the mesh to our group
-    scene.add( mesh );
+    scene.add(mesh);
     mesh.castShadow = false;
     mesh.receiveShadow = true;
 
@@ -1115,38 +1093,37 @@ function loadOpenDoor1(){
 
 }
 
-function ClockAnimations()
-{
+function ClockAnimations() {
 
-   
+
     animatorClock = new KF.KeyFrameAnimator;
-    animatorClock.init({ 
+    animatorClock.init({
         interps:
             [
-                { 
-                    keys:[0, 1], 
-                    values:[
-                            { x : 0, y : 0 },
-                            { x : -5, y : 0 },
-                            ],
+                {
+                    keys: [0, 1],
+                    values: [
+                        { x: 0, y: 0 },
+                        { x: -5, y: 0 },
+                    ],
                 },
                 {
-                    keys:[0, 1], 
-                    values:[
-                            true,
-                            false
-                        ],
+                    keys: [0, 1],
+                    values: [
+                        true,
+                        false
+                    ],
                 }
             ],
         loop: loopAnimation,
-        duration:duration,
+        duration: duration,
     });
 
 }
 
-function DeleteRoom1(){
+function DeleteRoom1() {
 
-    for (i = 0; i < Cuarto1.length; i++){
+    for (i = 0; i < Cuarto1.length; i++) {
 
         scene.remove(Cuarto1[i]);
     }
@@ -1154,175 +1131,175 @@ function DeleteRoom1(){
 
 // Hall 1 functions
 
-function CreateHall1(){
+function CreateHall1() {
 
     // Create floor texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.x = 15;
-        floor.position.z = -80;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.x = 15;
+    floor.position.z = -80;
 
-        // Add the mesh to our group
-        scene.add( floor );
-        floor.castShadow = false;
-        floor.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(floor);
+    floor.castShadow = false;
+    floor.receiveShadow = true;
 
-        Hall1.push(floor);
+    Hall1.push(floor);
 
     // Create roof texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        roof.rotation.x = -Math.PI / 2;
-        roof.position.x = 15;
-        roof.position.z = -80;
-        roof.position.y = 25;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    roof.rotation.x = -Math.PI / 2;
+    roof.position.x = 15;
+    roof.position.z = -80;
+    roof.position.y = 25;
 
-        // Add the mesh to our group
-        scene.add( roof );
-        roof.castShadow = false;
-        roof.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(roof);
+    roof.castShadow = false;
+    roof.receiveShadow = true;
 
-        Hall1.push(roof);
+    Hall1.push(roof);
 
     // Create wall 1 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = 30;
-        wall.position.z = -80;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = 30;
+    wall.position.z = -80;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall1.push(wall);
+    Hall1.push(wall);
 
     // Create wall 2 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = 0;
-        wall.position.z = -80;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = 0;
+    wall.position.z = -80;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall1.push(wall);
+    Hall1.push(wall);
 
     // Create wall 3 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.position.x = 15;
-        wall.position.z = -30.5;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.position.x = 15;
+    wall.position.z = -30.5;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall1.push(wall);
+    Hall1.push(wall);
 
     // Create wall 4 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.position.x = 15;
-        wall.position.z = -129.6;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.position.x = 15;
+    wall.position.z = -129.6;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall1.push(wall);
+    Hall1.push(wall);
 
     loadScreamAudio();
     loadOpenDoor2();
 }
 
-function loadScreamAudio(){
+function loadScreamAudio() {
 
     var audioLoader = new THREE.AudioLoader();
-    audioLoader.load( './audio/scream.ogg', function( buffer ) {
+    audioLoader.load('./audio/scream.ogg', function (buffer) {
 
-        ScreamSound.setBuffer( buffer );
-        ScreamSound.setLoop( false );
-        ScreamSound.setVolume( 0.5 );
+        ScreamSound.setBuffer(buffer);
+        ScreamSound.setLoop(false);
+        ScreamSound.setVolume(0.5);
     });
 
 }
 
-function loadJumpScare(){
+function loadJumpScare() {
 
     var map = new THREE.TextureLoader().load("images/jumpscare.jpg");
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
-    map.repeat.set(1,1);
+    map.repeat.set(1, 1);
 
     var color = 0xffffff;
 
     // Put in a ground plane to show off the lighting
     geometry = new THREE.PlaneGeometry(5, 5, 50, 50);
-    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
     mesh.position.y = 8;
     mesh.position.z = -60;
     mesh.position.x = 15;
 
 
     // Add the mesh to our group
-    scene.add( mesh );
+    scene.add(mesh);
     mesh.castShadow = false;
     mesh.receiveShadow = true;
 
@@ -1330,24 +1307,24 @@ function loadJumpScare(){
 
 }
 
-function loadOpenDoor2(){
+function loadOpenDoor2() {
 
     var map = new THREE.TextureLoader().load("images/portal2.png");
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
-    map.repeat.set(10,20);
+    map.repeat.set(10, 20);
 
     var color = 0xffffff;
 
     // Put in a ground plane to show off the lighting
     geometry = new THREE.PlaneGeometry(10, 16, 50, 50);
-    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
     mesh.position.y = 8;
     mesh.position.z = -129.5;
     mesh.position.x = 15;
 
 
     // Add the mesh to our group
-    scene.add( mesh );
+    scene.add(mesh);
     mesh.castShadow = false;
     mesh.receiveShadow = true;
 
@@ -1355,9 +1332,9 @@ function loadOpenDoor2(){
 
 }
 
-function DeleteHall1(){
+function DeleteHall1() {
 
-    for (i = 0; i < Hall1.length; i++){
+    for (i = 0; i < Hall1.length; i++) {
 
         scene.remove(Hall1[i]);
     }
@@ -1365,145 +1342,145 @@ function DeleteHall1(){
 
 // Room 2 functions
 
-function CreateRoom2(){
+function CreateRoom2() {
 
     // Create floor texture map
-        var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
-        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.z = -160
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.z = -160
 
-        // Add the mesh to our group
-        scene.add( floor );
-        floor.castShadow = false;
-        floor.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(floor);
+    floor.castShadow = false;
+    floor.receiveShadow = true;
 
-        Cuarto2.push(floor);
+    Cuarto2.push(floor);
 
     // Create Wall 1 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
-        
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.position.z = -190
-        
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
 
-        Cuarto2.push(wall)
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.position.z = -190
+
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
+
+    Cuarto2.push(wall)
 
     // Create Wall 2 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.position.z = -130
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.position.z = -130
 
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        walls.push(wall)
-        Cuarto2.push(wall)
+    walls.push(wall)
+    Cuarto2.push(wall)
 
     // Create Wall 3 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = 30
-        wall.position.z = -160
-        
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = 30
+    wall.position.z = -160
 
-        walls.push(wall)
-        Cuarto2.push(wall)
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
+
+    walls.push(wall)
+    Cuarto2.push(wall)
 
     // Create Wall 4 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = -30
-        wall.position.z = -160
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = -30
+    wall.position.z = -160
 
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        walls.push(wall)
-        Cuarto2.push(wall);
+    walls.push(wall)
+    Cuarto2.push(wall);
 
     // Create roof texture map
-   
-        var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
 
-        var color = 0xffffff;
+    var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
-        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        roof.rotation.x = -Math.PI / 2;
-        roof.position.y = 25
+    var color = 0xffffff;
+
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+    roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    roof.rotation.x = -Math.PI / 2;
+    roof.position.y = 25
 
 
-        // Add the mesh to our group
-        scene.add( roof );
-        roof.castShadow = false;
-        roof.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(roof);
+    roof.castShadow = false;
+    roof.receiveShadow = true;
 
-        Cuarto2.push(roof);
-        roof.position.z = -160
+    Cuarto2.push(roof);
+    roof.position.z = -160
 
     loadDoor2();
 
-    LoadBox(0,-2,-185);
-    LoadBox(4,-2,-184);
-    LoadBox(-3.5,-2,-184);
-    LoadBox(-2,-2,-179);
-    LoadBox(3,-2,-190);
-    LoadBox(1,-2,-180);
+    LoadBox(0, -2, -185);
+    LoadBox(4, -2, -184);
+    LoadBox(-3.5, -2, -184);
+    LoadBox(-2, -2, -179);
+    LoadBox(3, -2, -190);
+    LoadBox(1, -2, -180);
 
-    LoadBox(20,-2,-180);
-    LoadBox(21,-2,-186);
+    LoadBox(20, -2, -180);
+    LoadBox(21, -2, -186);
 
-    LoadBox(-21,-2,-145);
-    LoadBox(-11,-2,-150);
+    LoadBox(-21, -2, -145);
+    LoadBox(-11, -2, -150);
 
 
     loadSkeleton();
@@ -1512,31 +1489,28 @@ function CreateRoom2(){
 
 }
 
-function LoadBox(x,y,z){
+function LoadBox(x, y, z) {
 
-    if(!objLoader)
+    if (!objLoader)
 
         objLoader = new THREE.OBJLoader();
 
     objLoader.load(
         'models/Box/box_obj.obj',
 
-        function(object)
-        {
+        function (object) {
             var texture = new THREE.TextureLoader().load('models/box/diffuse.jpg');
-            var normalMap = new THREE.TextureLoader().load('models/box/Box_lowNormalsMap.jpg');       
-            object.traverse( function ( child ) 
-            {
-                if ( child instanceof THREE.Mesh ) 
-                {
+            var normalMap = new THREE.TextureLoader().load('models/box/Box_lowNormalsMap.jpg');
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.material.map = texture;
                     child.material.normalMap = normalMap;
                 }
-            } );
-                    
-            object.scale.set(.1,.1,.1);
+            });
+
+            object.scale.set(.1, .1, .1);
             object.position.z = z;
             object.position.x = x;
             object.position.y = y;
@@ -1547,339 +1521,324 @@ function LoadBox(x,y,z){
             Cuarto2.push(object)
             Boxes.push(object)
         },
-        function ( xhr ) {
+        function (xhr) {
 
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
 
-            building_loaded = ( xhr.loaded / xhr.total * 100 )
-    
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
         },
         // called when loading has errors
-        function ( error ) {
-    
-            console.log( 'An error happened' );
-    
+        function (error) {
+
+            console.log('An error happened');
+
         }
     );
 
 }
 
-function loadDoor2(){
+function loadDoor2() {
 
-   
-    if(!mtlLoader)
+
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/InteriorDoorObj/InteriorDoor.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/InteriorDoorObj/InteriorDoor.obj',
+            objLoader.load(
+                'models/InteriorDoorObj/InteriorDoor.obj',
 
-            function(object)
-            {
-                var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.17,.17,.17);
-                object.position.z = -130.1;
-                object.position.x = 15;
-                object.position.y = 0;
-                
-                door1 = object
+                function (object) {
+                    var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                scene.add(door1);
-            },
-            function ( xhr ) {
+                    object.scale.set(.17, .17, .17);
+                    object.position.z = -130.1;
+                    object.position.x = 15;
+                    object.position.y = 0;
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    door1 = object
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    scene.add(door1);
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 
 }
 
-function loadSkeleton(){
-   
-    if(!objLoader)
+function loadSkeleton() {
+
+    if (!objLoader)
 
         objLoader = new THREE.OBJLoader();
 
     objLoader.load(
         'models/skeleton/skeleton.obj',
 
-        function(object)
-        {
+        function (object) {
             var texture = new THREE.TextureLoader().load('models/skeleton/tex_skeleton.jpg');
             //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-            object.traverse( function ( child ) 
-            {
-                if ( child instanceof THREE.Mesh ) 
-                {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.material.map = texture;
                     //child.material.normalMap = normalMap;
                 }
-            } );
-                    
-            object.scale.set(.5,.5,.5);
+            });
+
+            object.scale.set(.5, .5, .5);
             object.position.z = -160;
             object.position.x = 25;
             object.position.y = 0;
 
             scene.add(object);
             Cuarto2.push(object);
-            
+
         },
-        function ( xhr ) {
+        function (xhr) {
 
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
 
-            building_loaded = ( xhr.loaded / xhr.total * 100 )
-    
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
         },
         // called when loading has errors
-        function ( error ) {
-    
-            console.log( 'An error happened' );
-    
+        function (error) {
+
+            console.log('An error happened');
+
         });
 }
 
-function loadWardobe(){
+function loadWardobe() {
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/wardobe/Wardrobe.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/wardobe/Wardrobe.obj',
+            objLoader.load(
+                'models/wardobe/Wardrobe.obj',
 
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(8,8,8);
-                object.position.z = -140;
-                object.position.x = 30;
-                object.position.y = 0;
+                function (object) {
+                    //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                //object.rotation.y = Math.PI
-                
-                object.move = true;
+                    object.scale.set(8, 8, 8);
+                    object.position.z = -140;
+                    object.position.x = 30;
+                    object.position.y = 0;
 
-                Cuarto2.push(object)
-                scene.add(object);
-            },
-            function ( xhr ) {
+                    //object.rotation.y = Math.PI
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    object.move = true;
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    Cuarto2.push(object)
+                    scene.add(object);
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 }
 
-function loadPredator(){
+function loadPredator() {
 
-    if(!objLoader)
+    if (!objLoader)
 
         objLoader = new THREE.OBJLoader();
 
     objLoader.load(
         'models/Predator_OBJ/Predator_OBJ.OBJ',
 
-        function(object)
-        {
+        function (object) {
             //var texture = new THREE.TextureLoader().load('models/skeleton/tex_skeleton.jpg');
             //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-            object.traverse( function ( child ) 
-            {
-                if ( child instanceof THREE.Mesh ) 
-                {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     //child.material.map = texture;
                     //child.material.normalMap = normalMap;
                 }
-            } );
-                    
-            object.scale.set(2,2,2);
+            });
+
+            object.scale.set(2, 2, 2);
             object.position.z = -160;
             object.position.x = -27;
             object.position.y = 8;
 
-            object.rotation.y = Math.PI/2
+            object.rotation.y = Math.PI / 2
 
             object.move = true;
 
             scene.add(object);
             Cuarto2.push(object);
-            
+
         },
-        function ( xhr ) {
+        function (xhr) {
 
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
 
-            building_loaded = ( xhr.loaded / xhr.total * 100 )
-    
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
         },
         // called when loading has errors
-        function ( error ) {
-    
-            console.log( 'An error happened' );
-    
+        function (error) {
+
+            console.log('An error happened');
+
         });
 }
 
-function loadKey2(){
-    
-    if(!mtlLoader)
+function loadKey2() {
+
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/Key_B/Key_B_02.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/Key_B/Key_B_02.obj',
+            objLoader.load(
+                'models/Key_B/Key_B_02.obj',
 
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.3,.3,.3);
-                object.position.z = -184;
-                object.position.x = -0.5;
-                object.position.y = 0.5;
+                function (object) {
+                    //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                object.rotation.x = Math.PI/2;   
-                
-                keyRoom1 = object;
+                    object.scale.set(.3, .3, .3);
+                    object.position.z = -184;
+                    object.position.x = -0.5;
+                    object.position.y = 0.5;
 
-                scene.add(keyRoom1);
-                
-            },
-            function ( xhr ) {
+                    object.rotation.x = Math.PI / 2;
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    keyRoom1 = object;
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    scene.add(keyRoom1);
+
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
-    
+
 }
 
-function loadOpenDoor3(){
+function loadOpenDoor3() {
 
     var map = new THREE.TextureLoader().load("images/portal2.png");
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
-    map.repeat.set(10,20);
+    map.repeat.set(10, 20);
 
     var color = 0xffffff;
 
     // Put in a ground plane to show off the lighting
     geometry = new THREE.PlaneGeometry(10, 16, 50, 50);
-    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
     mesh.position.y = 8;
     mesh.position.z = -130.5;
     mesh.position.x = 15;
 
 
     // Add the mesh to our group
-    scene.add( mesh );
+    scene.add(mesh);
     mesh.castShadow = false;
     mesh.receiveShadow = true;
 
@@ -1887,9 +1846,9 @@ function loadOpenDoor3(){
 
 }
 
-function DeleteRoom2(){
+function DeleteRoom2() {
 
-    for (i = 0; i < Cuarto2.length; i++){
+    for (i = 0; i < Cuarto2.length; i++) {
 
         scene.remove(Cuarto2[i]);
     }
@@ -1897,164 +1856,164 @@ function DeleteRoom2(){
 
 // Hall 2 functions
 
-function CreateHall2(){
+function CreateHall2() {
 
     // Create floor texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.x = 15;
-        floor.position.z = -80;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.x = 15;
+    floor.position.z = -80;
 
-        // Add the mesh to our group
-        scene.add( floor );
-        floor.castShadow = false;
-        floor.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(floor);
+    floor.castShadow = false;
+    floor.receiveShadow = true;
 
-        Hall2.push(floor);
+    Hall2.push(floor);
 
     // Create roof texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        roof.rotation.x = -Math.PI / 2;
-        roof.position.x = 15;
-        roof.position.z = -80;
-        roof.position.y = 25;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    roof.rotation.x = -Math.PI / 2;
+    roof.position.x = 15;
+    roof.position.z = -80;
+    roof.position.y = 25;
 
-        // Add the mesh to our group
-        scene.add( roof );
-        roof.castShadow = false;
-        roof.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(roof);
+    roof.castShadow = false;
+    roof.receiveShadow = true;
 
-        Hall2.push(roof);
+    Hall2.push(roof);
 
     // Create wall 1 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = 30;
-        wall.position.z = -80;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = 30;
+    wall.position.z = -80;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall2.push(wall);
+    Hall2.push(wall);
 
     // Create wall 2 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = 0;
-        wall.position.z = -80;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = 0;
+    wall.position.z = -80;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall2.push(wall);
+    Hall2.push(wall);
 
     // Create wall 3 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.position.x = 15;
-        wall.position.z = -30.5;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.position.x = 15;
+    wall.position.z = -30.5;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall2.push(wall);
+    Hall2.push(wall);
 
     // Create wall 4 texture map
-        var map = new THREE.TextureLoader().load("images/hall1.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(3,10);
+    var map = new THREE.TextureLoader().load("images/hall1.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(3, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.z = -Math.PI / 2;
-        wall.position.x = 15;
-        wall.position.z = -129.6;
-        wall.position.y = 12.5;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.z = -Math.PI / 2;
+    wall.position.x = 15;
+    wall.position.z = -129.6;
+    wall.position.y = 12.5;
 
-        // Add the mesh to our group
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Hall2.push(wall);
-    
+    Hall2.push(wall);
+
     loadOpenDoor4();
     loadCorpse();
 
 }
 
-function loadOpenDoor4(){
+function loadOpenDoor4() {
 
     var map = new THREE.TextureLoader().load("images/portal2.png");
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
-    map.repeat.set(10,20);
+    map.repeat.set(10, 20);
 
     var color = 0xffffff;
 
     // Put in a ground plane to show off the lighting
     geometry = new THREE.PlaneGeometry(10, 16, 50, 50);
-    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
     mesh.position.y = 8;
     mesh.position.z = -31;
     mesh.position.x = 15;
 
 
     // Add the mesh to our group
-    scene.add( mesh );
+    scene.add(mesh);
     mesh.castShadow = false;
     mesh.receiveShadow = true;
 
@@ -2062,32 +2021,29 @@ function loadOpenDoor4(){
 
 }
 
-function loadCorpse(){
+function loadCorpse() {
 
 
-    if(!objLoader)
+    if (!objLoader)
 
         objLoader = new THREE.OBJLoader();
 
     objLoader.load(
         'models/dead_max_obj/dead_body_1.obj',
 
-        function(object)
-        {
+        function (object) {
             //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
             //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-            object.traverse( function ( child ) 
-            {
-                if ( child instanceof THREE.Mesh ) 
-                {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     //child.material.map = texture;
                     //child.material.normalMap = normalMap;
                 }
-            } );
-                    
-            object.scale.set(.1,.1,.1);
+            });
+
+            object.scale.set(.1, .1, .1);
             object.position.z = -110;
             object.position.x = 20;
             object.position.y = 0;
@@ -2095,81 +2051,75 @@ function loadCorpse(){
             Hall2.push(object)
             scene.add(object);
         },
-        function ( xhr ) {
+        function (xhr) {
 
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
 
-            building_loaded = ( xhr.loaded / xhr.total * 100 )
-    
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
         },
         // called when loading has errors
-        function ( error ) {
-    
-            console.log( 'An error happened' );
-    
+        function (error) {
+
+            console.log('An error happened');
+
         });
 
-        objLoader.load(
-            'models/dead_max_obj/dead_body_2.obj',
-
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.08,.08,.08);
-                object.position.z = -80;
-                object.position.x = 5;
-                object.position.y = 0;
-
-                object.rotation.y = Math.PI/2
-
-                Hall2.push(object)
-                scene.add(object);
-            },
-            function ( xhr ) {
-
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-        });
-    
     objLoader.load(
-        'models/dead_max_obj/dead_body_3.obj',
+        'models/dead_max_obj/dead_body_2.obj',
 
-        function(object)
-        {
+        function (object) {
             //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
             //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-            object.traverse( function ( child ) 
-            {
-                if ( child instanceof THREE.Mesh ) 
-                {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     //child.material.map = texture;
                     //child.material.normalMap = normalMap;
                 }
-            } );
-                    
-            object.scale.set(.05,.05,.05);
+            });
+
+            object.scale.set(.08, .08, .08);
+            object.position.z = -80;
+            object.position.x = 5;
+            object.position.y = 0;
+
+            object.rotation.y = Math.PI / 2
+
+            Hall2.push(object)
+            scene.add(object);
+        },
+        function (xhr) {
+
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
+        },
+        // called when loading has errors
+        function (error) {
+
+            console.log('An error happened');
+
+        });
+
+    objLoader.load(
+        'models/dead_max_obj/dead_body_3.obj',
+
+        function (object) {
+            //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+            //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    //child.material.map = texture;
+                    //child.material.normalMap = normalMap;
+                }
+            });
+
+            object.scale.set(.05, .05, .05);
             object.position.z = -50;
             object.position.x = 20;
             object.position.y = 0;
@@ -2177,26 +2127,26 @@ function loadCorpse(){
             Hall2.push(object)
             scene.add(object);
         },
-        function ( xhr ) {
+        function (xhr) {
 
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
 
-            building_loaded = ( xhr.loaded / xhr.total * 100 )
-    
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
         },
         // called when loading has errors
-        function ( error ) {
-    
-            console.log( 'An error happened' );
-    
+        function (error) {
+
+            console.log('An error happened');
+
         });
 
 
 }
 
-function DeleteHall2(){
+function DeleteHall2() {
 
-    for (i = 0; i < Hall2.length ; i++){
+    for (i = 0; i < Hall2.length; i++) {
 
         scene.remove(Hall2[i]);
     }
@@ -2205,122 +2155,122 @@ function DeleteHall2(){
 
 // Last Room function
 
-function createRoom3(){
+function createRoom3() {
 
     // Create floor texture map
-        var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
-        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        floor.rotation.x = -Math.PI / 2;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    floor.rotation.x = -Math.PI / 2;
 
-        // Add the mesh to our group
-        scene.add( floor );
-        floor.castShadow = false;
-        floor.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(floor);
+    floor.castShadow = false;
+    floor.receiveShadow = true;
 
-        Cuarto3.push(floor);
+    Cuarto3.push(floor);
 
     // Create Wall 1 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
-        
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.position.z = 30
-        
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
 
-        Cuarto3.push(wall)
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.position.z = 30
+
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
+
+    Cuarto3.push(wall)
 
     // Create Wall 2 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.position.z = -30
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.position.z = -30
 
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
-        Cuarto3.push(wall)
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
+    Cuarto3.push(wall)
 
     // Create Wall 3 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = 30
-        
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = 30
 
-        Cuarto3.push(wall)
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
+
+    Cuarto3.push(wall)
 
     // Create Wall 4 texture map
-        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
-        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        wall.rotation.y = -Math.PI / 2;
-        wall.position.x = -30
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+    wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    wall.rotation.y = -Math.PI / 2;
+    wall.position.x = -30
 
-        scene.add( wall );
-        wall.castShadow = false;
-        wall.receiveShadow = true;
+    scene.add(wall);
+    wall.castShadow = false;
+    wall.receiveShadow = true;
 
-        Cuarto3.push(wall);
+    Cuarto3.push(wall);
 
 
     // Create roof texture map
-        var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
-        map.wrapS = map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(10,10);
+    var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10, 10);
 
-        var color = 0xffffff;
+    var color = 0xffffff;
 
-        // Put in a ground plane to show off the lighting
-        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
-        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
-        roof.rotation.x = -Math.PI / 2;
-        roof.position.y = 25
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+    roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
+    roof.rotation.x = -Math.PI / 2;
+    roof.position.y = 25
 
 
-        // Add the mesh to our group
-        scene.add( roof );
-        roof.castShadow = false;
-        roof.receiveShadow = true;
+    // Add the mesh to our group
+    scene.add(roof);
+    roof.castShadow = false;
+    roof.receiveShadow = true;
 
-        Cuarto3.push(roof);
+    Cuarto3.push(roof);
 
 
     loadTable();
@@ -2330,172 +2280,163 @@ function createRoom3(){
     loadKey3();
 }
 
-function loadGun(){
+function loadGun() {
 
-    if(!mtlLoader)
-
-        mtlLoader = new THREE.MTLLoader();
-
-    mtlLoader.load(
-        'models/double_obj/SSG_double.mtl',
-        
-        function(materials){
-
-            materials.preload();
-
-        if(!objLoader)
-
-            objLoader = new THREE.OBJLoader();
-
-            objLoader.setMaterials(materials)
-
-        objLoader.load(
-            'models/double_obj/SSG_double.obj',
-
-            function(object)
-            {
-                var texture = new THREE.TextureLoader().load('models/double_obj/free-grey-camouflage-vector.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.1,.1,.1);
-                object.position.z = 0;
-                object.position.x = 27.5;
-                object.position.y = 5.5;
-
-                object.rotation.y = Math.PI
-                object.rotation.z = Math.PI/2
-
-                object.tag = "gun";
-
-                FakeGun = object
-
-                scene.add(FakeGun);
-                
-            },
-            function ( xhr ) {
-
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
-        }
-    )
-
-}
-
-function loadhandGun(){
-
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/double_obj/SSG_double.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/double_obj/SSG_double.obj',
+            objLoader.load(
+                'models/double_obj/SSG_double.obj',
 
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.1,.1,.1);
-                object.position.z = -3;
-                object.position.x = 1;
-                object.position.y = -2;
+                function (object) {
+                    var texture = new THREE.TextureLoader().load('models/double_obj/free-grey-camouflage-vector.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                object.rotation.y = Math.PI
+                    object.scale.set(.1, .1, .1);
+                    object.position.z = 0;
+                    object.position.x = 27.5;
+                    object.position.y = 5.5;
 
-                object.visible = false;
+                    object.rotation.y = Math.PI
+                    object.rotation.z = Math.PI / 2
 
-                Gun = object
+                    object.tag = "gun";
 
-                Player.add(Gun)
-                Cuarto3.push(Gun)
-                //scene.add(object);
-                
-            },
-            function ( xhr ) {
+                    FakeGun = object
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    scene.add(FakeGun);
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 
 }
 
-function loadTable(){
+function loadhandGun() {
 
-    if(!objLoader)
+    if (!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/double_obj/SSG_double.mtl',
+
+        function (materials) {
+
+            materials.preload();
+
+            if (!objLoader)
+
+                objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+            objLoader.load(
+                'models/double_obj/SSG_double.obj',
+
+                function (object) {
+                    //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
+
+                    object.scale.set(.1, .1, .1);
+                    object.position.z = -3;
+                    object.position.x = 1;
+                    object.position.y = -2;
+
+                    object.rotation.y = Math.PI
+
+                    object.visible = false;
+
+                    Gun = object
+
+                    Player.add(Gun)
+                    Cuarto3.push(Gun)
+                    //scene.add(object);
+
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
+        }
+    )
+
+}
+
+function loadTable() {
+
+    if (!objLoader)
 
         objLoader = new THREE.OBJLoader();
 
     objLoader.load(
         'models/table/WoodCoffeeTable.obj',
 
-        function(object)
-        {
+        function (object) {
             var texture = new THREE.TextureLoader().load('models/table/Textures/TeaTable_default_color.png');
             //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-            object.traverse( function ( child ) 
-            {
-                if ( child instanceof THREE.Mesh ) 
-                {
+            object.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.material.map = texture;
                     //child.material.normalMap = normalMap;
                 }
-            } );
-                    
-            object.scale.set(.2,.5,.5);
+            });
+
+            object.scale.set(.2, .5, .5);
             object.position.z = 0;
             object.position.x = 28;
             object.position.y = 0;
@@ -2503,229 +2444,219 @@ function loadTable(){
             Cuarto3.push(object)
             scene.add(object);
         },
-        function ( xhr ) {
+        function (xhr) {
 
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
 
-            building_loaded = ( xhr.loaded / xhr.total * 100 )
-    
+            building_loaded = (xhr.loaded / xhr.total * 100)
+
         },
         // called when loading has errors
-        function ( error ) {
-    
-            console.log( 'An error happened' );
-    
+        function (error) {
+
+            console.log('An error happened');
+
         });
 }
 
-function loadFan(){
+function loadFan() {
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/fan/ceiling_fan.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/fan/ceiling_fan.obj',
+            objLoader.load(
+                'models/fan/ceiling_fan.obj',
 
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(10,10,10);
-                object.position.z = 0;
-                object.position.x = 0;
-                object.position.y = 23;
+                function (object) {
+                    //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                Fan = object
+                    object.scale.set(10, 10, 10);
+                    object.position.z = 0;
+                    object.position.x = 0;
+                    object.position.y = 23;
 
-                Fan.collider = new THREE.Box3().setFromObject(Fan);
+                    Fan = object
 
-                Cuarto3.push(Fan)
-                scene.add(Fan);
-                
-            },
-            function ( xhr ) {
+                    Fan.collider = new THREE.Box3().setFromObject(Fan);
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    Cuarto3.push(Fan)
+                    scene.add(Fan);
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 
 }
 
-function loadKey3(){
+function loadKey3() {
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/Key_B/Key_B_02.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/Key_B/Key_B_02.obj',
+            objLoader.load(
+                'models/Key_B/Key_B_02.obj',
 
-            function(object)
-            {
-                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        //child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.3,.3,.3);
-                object.position.z = -0.5;
-                object.position.x = -0.5;
-                object.position.y = 24;
+                function (object) {
+                    //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            //child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                object.rotation.x = Math.PI/2;   
-                object.drop = false;
-                
-                Key_3 = object;
+                    object.scale.set(.3, .3, .3);
+                    object.position.z = -0.5;
+                    object.position.x = -0.5;
+                    object.position.y = 24;
 
-                scene.add(Key_3);
-                
-            },
-            function ( xhr ) {
+                    object.rotation.x = Math.PI / 2;
+                    object.drop = false;
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    Key_3 = object;
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    scene.add(Key_3);
+
+                },
+                function (xhr) {
+
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 }
 
-function onWindowResize() 
-{
+function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function loadSofa(){
+function loadSofa() {
 
-    if(!mtlLoader)
+    if (!mtlLoader)
 
         mtlLoader = new THREE.MTLLoader();
 
     mtlLoader.load(
         'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.mtl',
-        
-        function(materials){
+
+        function (materials) {
 
             materials.preload();
 
-        if(!objLoader)
+            if (!objLoader)
 
-            objLoader = new THREE.OBJLoader();
+                objLoader = new THREE.OBJLoader();
 
             objLoader.setMaterials(materials)
 
-        objLoader.load(
-            'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.obj',
+            objLoader.load(
+                'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.obj',
 
-            function(object)
-            {
-                var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
-                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
-                object.traverse( function ( child ) 
-                {
-                    if ( child instanceof THREE.Mesh ) 
-                    {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.material.map = texture;
-                        //child.material.normalMap = normalMap;
-                    }
-                } );
-                        
-                object.scale.set(.3,.3,.3);
-                object.position.z = 0;
-                object.position.x = -25;
-                object.position.y = 0;
-                object.rotation.y = Math.PI /2
+                function (object) {
+                    var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                    //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            child.material.map = texture;
+                            //child.material.normalMap = normalMap;
+                        }
+                    });
 
-                scene.add(object);
-                Cuarto3.push(object)
-            },
-            function ( xhr ) {
+                    object.scale.set(.3, .3, .3);
+                    object.position.z = 0;
+                    object.position.x = -25;
+                    object.position.y = 0;
+                    object.rotation.y = Math.PI / 2
 
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    scene.add(object);
+                    Cuarto3.push(object)
+                },
+                function (xhr) {
 
-                building_loaded = ( xhr.loaded / xhr.total * 100 )
-        
-            },
-            // called when loading has errors
-            function ( error ) {
-        
-                console.log( 'An error happened' );
-        
-            });
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+                    building_loaded = (xhr.loaded / xhr.total * 100)
+
+                },
+                // called when loading has errors
+                function (error) {
+
+                    console.log('An error happened');
+
+                });
         }
     )
 }
 
-function ShootBullet(){
+function ShootBullet() {
 
-    var material = new THREE.MeshPhongMaterial({color: 0x00ff00 });
+    var material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
     var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
     cube = new THREE.Mesh(geometry, material);
 
@@ -2740,31 +2671,30 @@ function ShootBullet(){
 
 }
 
-function KeyAnimations()
-{
+function KeyAnimations() {
 
-   
+
     animatorKey = new KF.KeyFrameAnimator;
-    animatorKey.init({ 
+    animatorKey.init({
         interps:
             [
-                { 
-                    keys:[0, 1], 
-                    values:[
-                            { x : 0, y : 24 },
-                            { x : 0, y : 0},
-                            ],
+                {
+                    keys: [0, 1],
+                    values: [
+                        { x: 0, y: 24 },
+                        { x: 0, y: 0 },
+                    ],
                 }
             ],
         loop: loopAnimation,
-        duration:duration,
+        duration: duration,
     });
 
 }
 
-function DeleteRoom3(){
+function DeleteRoom3() {
 
-    for (i = 0;  i < Cuarto3.length; i++){
+    for (i = 0; i < Cuarto3.length; i++) {
 
         scene.remove(Cuarto3[i])
     }
@@ -2772,164 +2702,164 @@ function DeleteRoom3(){
 
 // SKYBOX 
 
-function CreateSkybox(){
+function CreateSkybox() {
 
-    ambientLight = new THREE.AmbientLight ( 0x888888 );
+    ambientLight = new THREE.AmbientLight(0x888888);
     scene.add(ambientLight)
 
     var map = new THREE.TextureLoader().load("images/Skybox_out/bot.jpg");
     map.wrapS = map.wrapT = THREE.RepeatWrapping;
-    map.repeat.set(10,10);
+    map.repeat.set(10, 10);
 
     var color = 0xffffff;
 
     // Put in a ground plane to show off the lighting
-    geometry = new THREE.PlaneGeometry(1000,1000, 50, 50);
-    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    geometry = new THREE.PlaneGeometry(1000, 1000, 50, 50);
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ color: color, map: map, side: THREE.DoubleSide }));
     floor.rotation.x = -Math.PI / 2;
 
     // Add the mesh to our group
-    scene.add( floor );
+    scene.add(floor);
     floor.castShadow = false;
     floor.receiveShadow = true;
 
 
     var imagePrefix = "images/Skybox_out/";
     //var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
-    var directions  = ["uno", "tres", "top", "bot", "dos", "cuatro"];
-	var imageSuffix = ".jpg";
-	var skyGeometry = new THREE.CubeGeometry( 1000, 1000, 1000 );	
-	
-	var materialArray = [];
-	for (var i = 0; i < 6; i++)
-		materialArray.push( new THREE.MeshBasicMaterial({
-			map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
-			side: THREE.BackSide
-		}));
-	var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
-	var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
-	scene.add( skyBox );
+    var directions = ["uno", "tres", "top", "bot", "dos", "cuatro"];
+    var imageSuffix = ".jpg";
+    var skyGeometry = new THREE.CubeGeometry(1000, 1000, 1000);
+
+    var materialArray = [];
+    for (var i = 0; i < 6; i++)
+        materialArray.push(new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture(imagePrefix + directions[i] + imageSuffix),
+            side: THREE.BackSide
+        }));
+    var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
+    var skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
+    scene.add(skyBox);
 }
 
-THREE.PointerLockControls = function ( Player, domElement ) {
+THREE.PointerLockControls = function (Player, domElement) {
 
 
-	var scope = this;
+    var scope = this;
 
-	this.domElement = domElement || document.body;
-	this.isLocked = false;
+    this.domElement = domElement || document.body;
+    this.isLocked = false;
 
-	Player.rotation.set( 0, 0, 0 );
+    Player.rotation.set(0, 0, 0);
 
-	var pitchObject = new THREE.Object3D();
-	pitchObject.add( Player );
+    var pitchObject = new THREE.Object3D();
+    pitchObject.add(Player);
 
-	var yawObject = new THREE.Object3D();
-	yawObject.position.y = 10;
-	yawObject.add( pitchObject );
+    var yawObject = new THREE.Object3D();
+    yawObject.position.y = 10;
+    yawObject.add(pitchObject);
 
-	var PI_2 = Math.PI / 2;
+    var PI_2 = Math.PI / 2;
 
-	function onMouseMove( event ) {
+    function onMouseMove(event) {
 
-		if ( scope.isLocked === false ) return;
+        if (scope.isLocked === false) return;
 
-		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+        var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+        var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-		yawObject.rotation.y -= movementX * 0.002;
-		pitchObject.rotation.x -= movementY * 0.002;
+        yawObject.rotation.y -= movementX * 0.002;
+        pitchObject.rotation.x -= movementY * 0.002;
 
-		pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
+        pitchObject.rotation.x = Math.max(- PI_2, Math.min(PI_2, pitchObject.rotation.x));
 
-	}
+    }
 
-	function onPointerlockChange() {
+    function onPointerlockChange() {
 
-		if ( document.pointerLockElement === scope.domElement ) {
+        if (document.pointerLockElement === scope.domElement) {
 
-			scope.dispatchEvent( { type: 'lock' } );
+            scope.dispatchEvent({ type: 'lock' });
 
-			scope.isLocked = true;
+            scope.isLocked = true;
 
-		} else {
+        } else {
 
-			scope.dispatchEvent( { type: 'unlock' } );
+            scope.dispatchEvent({ type: 'unlock' });
 
-			scope.isLocked = false;
+            scope.isLocked = false;
 
-		}
+        }
 
-	}
+    }
 
-	function onPointerlockError() {
+    function onPointerlockError() {
 
-		console.error( 'THREE.PointerLockControls: Unable to use Pointer Lock API' );
+        console.error('THREE.PointerLockControls: Unable to use Pointer Lock API');
 
-	}
+    }
 
-	this.connect = function () {
+    this.connect = function () {
 
-		document.addEventListener( 'mousemove', onMouseMove, false );
-		document.addEventListener( 'pointerlockchange', onPointerlockChange, false );
-		document.addEventListener( 'pointerlockerror', onPointerlockError, false );
+        document.addEventListener('mousemove', onMouseMove, false);
+        document.addEventListener('pointerlockchange', onPointerlockChange, false);
+        document.addEventListener('pointerlockerror', onPointerlockError, false);
 
-	};
+    };
 
-	this.disconnect = function () {
+    this.disconnect = function () {
 
-		document.removeEventListener( 'mousemove', onMouseMove, false );
-		document.removeEventListener( 'pointerlockchange', onPointerlockChange, false );
-		document.removeEventListener( 'pointerlockerror', onPointerlockError, false );
+        document.removeEventListener('mousemove', onMouseMove, false);
+        document.removeEventListener('pointerlockchange', onPointerlockChange, false);
+        document.removeEventListener('pointerlockerror', onPointerlockError, false);
 
-	};
+    };
 
-	this.dispose = function () {
+    this.dispose = function () {
 
-		this.disconnect();
+        this.disconnect();
 
-	};
+    };
 
-	this.getObject = function () {
+    this.getObject = function () {
 
-		return yawObject;
+        return yawObject;
 
-	};
+    };
 
-	this.getDirection = function () {
+    this.getDirection = function () {
 
-		// assumes the camera itself is not rotated
+        // assumes the camera itself is not rotated
 
-		var direction = new THREE.Vector3( 0, 0, - 1 );
-		var rotation = new THREE.Euler( 0, 0, 0, 'YXZ' );
+        var direction = new THREE.Vector3(0, 0, - 1);
+        var rotation = new THREE.Euler(0, 0, 0, 'YXZ');
 
-		return function ( v ) {
+        return function (v) {
 
-			rotation.set( pitchObject.rotation.x, yawObject.rotation.y, 0 );
+            rotation.set(pitchObject.rotation.x, yawObject.rotation.y, 0);
 
-			v.copy( direction ).applyEuler( rotation );
+            v.copy(direction).applyEuler(rotation);
 
-			return v;
+            return v;
 
-		};
+        };
 
-	}();
+    }();
 
-	this.lock = function () {
+    this.lock = function () {
 
-		this.domElement.requestPointerLock();
+        this.domElement.requestPointerLock();
 
-	};
+    };
 
-	this.unlock = function () {
+    this.unlock = function () {
 
-		document.exitPointerLock();
+        document.exitPointerLock();
 
-	};
+    };
 
-	this.connect();
+    this.connect();
 
 };
 
-THREE.PointerLockControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+THREE.PointerLockControls.prototype = Object.create(THREE.EventDispatcher.prototype);
 THREE.PointerLockControls.prototype.constructor = THREE.PointerLockControls;
