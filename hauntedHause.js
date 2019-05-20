@@ -20,6 +20,7 @@ var duration = 1500; // ms
 var keyRoom1 = null;
 
 var animatorClock = null;
+var animatorKey = null;
 var loopAnimation = false;
 
 var mouse = new THREE.Vector3(), INTERSECTED, CLICKED; 
@@ -52,8 +53,17 @@ var objects = [];
 var Cuarto1 = [];
 var Hall1 = [];
 var Cuarto2 = [];
+var Boxes = [];
+var Hall2 = [];
+var Cuarto3 = [];
+var Bullets = [];
 
 var walls = [];
+
+var Fan = null;
+var Gun = null;
+var FakeGun = null;
+var Key_3 = null; 
 
 var prevTime = performance.now();
 var raycaster = new THREE.Raycaster();
@@ -86,16 +96,18 @@ function animate() {
         if ( moveForward || moveBackward ) velocity.z -= direction.z * 180.0 * delta;
         if ( moveLeft || moveRight ) velocity.x -= direction.x * 180.0 * delta;
 
+        if (Player.crouch){
+
+            velocity.z /=1.001;
+            velocity.x /=1.001;
+
+        }
+
         controls.getObject().translateX( velocity.x * delta );
-        controls.getObject().translateY( velocity.y * delta );
         controls.getObject().translateZ( velocity.z * delta );
         
-
-        if ( controls.getObject().position.y < 10 ) {
-            velocity.y = 0;
-            controls.getObject().position.y = 10;
-            canJump = true;
-        }
+        velocity.y = 0;
+        
         prevTime = time;
     }
     
@@ -108,10 +120,13 @@ function animate() {
         }
 
     }
+    
+    hallLight.position.x = controls.getObject().position.x;
+    hallLight.position.z = controls.getObject().position.z;
+    
 
     if (Player.room == "1"){
 
-        world.step(timeStep);
 
         if (controls.getObject().position.x >= 25.5){controls.getObject().position.x = 25}
         if (controls.getObject().position.x <= -25.5){controls.getObject().position.x = -25}
@@ -127,7 +142,6 @@ function animate() {
             if (controls.getObject().position.z <= -30) 
             {
                 DeleteRoom1();
-                console.log("CREATING ROOM 2");
                 Player.room = "2";
                 CreateRoom2();
                 
@@ -135,11 +149,7 @@ function animate() {
         }
     }
 
-    hallLight.position.x = controls.getObject().position.x;
-    hallLight.position.z = controls.getObject().position.z;
-
     if (Player.room == "2"){
-
 
         if (controls.getObject().position.z >= -31.5){controls.getObject().position.z = -32}
         //if (controls.getObject().position.z <= -128.5){controls.getObject().position.z = -128}
@@ -155,9 +165,9 @@ function animate() {
 
         if (controls.getObject().position.z <= -130){
 
-            console.log("ROOM 3")
             Player.room = "3";
             DeleteHall1();
+            loadKey2();
 
         }
 
@@ -165,14 +175,105 @@ function animate() {
 
     if (Player.room == "3"){
 
-        if (controls.getObject().position.z >= -130.5){controls.getObject().position.z = -131}
+        //if (controls.getObject().position.z >= -130.5){controls.getObject().position.z = -131}
         if (controls.getObject().position.z <= -188.5){controls.getObject().position.z = -188}
-        if (controls.getObject().position.x >= 29){controls.getObject().position.x = 28.5}
-        if (controls.getObject().position.x <= 1){controls.getObject().position.x = 1.5}
+        if (controls.getObject().position.x >= 25.5){controls.getObject().position.x = 25}
+        if (controls.getObject().position.x <= -25.5){controls.getObject().position.x = -25}
 
+        if (!Player.key2){
+
+            if (controls.getObject().position.z >= -130.5){controls.getObject().position.z = -131}
+        }
+        else{
+            
+            if (controls.getObject().position.z >= -130.5 && controls.getObject().position.x <= 10 ){
+                controls.getObject().position.z = -131
+            }
+            if (controls.getObject().position.z >= -130) 
+            {
+                DeleteRoom2();
+                Player.room = "4";
+                createRoom3();
+                
+            }
+        }
+
+        for (i = 0; i < Boxes.length; i++){
+
+            if (Boxes[i].grab){
+
+                scene.remove(Boxes[i])
+            }
+
+        }
         
     }
     
+    if (Player.room == "4"){
+
+        //if (controls.getObject().position.z >= -31.5){controls.getObject().position.z = -32}
+        if (controls.getObject().position.z <= -128.5){controls.getObject().position.z = -128}
+        if (controls.getObject().position.x >= 29){controls.getObject().position.x = 28.5}
+        if (controls.getObject().position.x <= 1){controls.getObject().position.x = 1.5}
+
+        if (controls.getObject().position.z >= -30){
+
+            Player.room = "5";
+            DeleteHall2();
+        }
+    }
+
+    if (Player.room == "5"){
+
+
+        if (controls.getObject().position.x >= 25.5){controls.getObject().position.x = 25}
+        if (controls.getObject().position.x <= -25.5){controls.getObject().position.x = -25}
+        if (controls.getObject().position.z >= 25.5){controls.getObject().position.z = 25}
+
+        if (!Player.key3){
+
+            if (controls.getObject().position.z <= -25.5){controls.getObject().position.z = -25}
+        }
+        
+    }
+
+    var delta = ( time - prevTime ) / 1000;
+
+    if (Bullets.length > 0){
+
+        for (bullet of Bullets){
+
+            if (bullet.position.x > 30 || bullet.position.x < -30 || bullet.position.y < 0 || bullet.position.y > 25 || bullet.position.z > 30 || bullet.position.z < -30){
+                Bullets.shift();
+                scene.remove(bullet)
+            }
+
+            else {
+
+                bullet.position.x += bullet.moveto.x/70;
+                bullet.position.y += bullet.moveto.y/70;
+                bullet.position.z += bullet.moveto.z/70;
+
+            }
+
+            bullet.collider = new THREE.Box3().setFromObject(bullet)
+
+            if (bullet.collider.intersectsBox(Fan.collider) && !Key_3.drop){
+
+                for(var i = 0; i<= animatorKey.interps.length -1; i++)
+                {
+                    animatorKey.interps[0].target = Key_3.position
+                    animatorKey.start();
+
+                }
+
+                Key_3.drop = true;
+
+            }
+
+        }
+    }
+
 }
 
 
@@ -199,10 +300,14 @@ function createScene(canvas)
     Player.key1 = false;
     Player.key2 = false;
     Player.key3 = false;
-    
+    Player.crouch = false;
+    Player.gun = false;
+
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 ); 
     scene = new THREE.Scene();
-    controls = new THREE.PointerLockControls( camera );
+    controls = new THREE.PointerLockControls( Player );
+
+    Player.add(camera)
 
     var blocker = document.getElementById( 'blocker' );
     var instructions = document.getElementById( 'instructions' );
@@ -225,6 +330,18 @@ function createScene(canvas)
 
     var onKeyDown = function ( event ) {
         switch ( event.keyCode ) {
+            case 17: // ctrl
+                if (!Player.crouch){
+
+                    controls.getObject().position.y = 6
+                    Player.crouch = true;
+                }
+                else {
+
+                    controls.getObject().position.y = 10
+                    Player.crouch = false;
+                }
+                break;
             case 38: // up
             case 87: // w
                 moveForward = true;
@@ -242,8 +359,10 @@ function createScene(canvas)
                 moveRight = true;
                 break;
             case 32: // space
-                if ( canJump === true ) velocity.y += 100;
-                canJump = false;
+                if(Player.gun){
+
+                    ShootBullet();
+                }
                 break;
             case 69: // e
 
@@ -256,36 +375,104 @@ function createScene(canvas)
                 // find intersections
                 raycaster.set(origin, lookAtVector)
 
-                var intersects = raycaster.intersectObjects( scene.children, true );
+                if (Player.room == "1"){
 
-                if ( intersects.length > 0 ) 
-                {
-                    
-                    
-                    if (intersects[0].object.name == "clock body_clock texture"){
+                    var intersects = raycaster.intersectObjects( scene.children, true );
 
-                        loadKey();
-                        for(var i = 0; i<= animatorClock.interps.length -1; i++)
-                        {
-                            animatorClock.interps[0].target = clockGroup.position
-                            clockRoom1.moving = true;
+                    if ( intersects.length > 0 ) 
+                    {
+                        
+                        
+                        if (intersects[0].object.name == "clock body_clock texture"){
+
+                            loadKey();
+                            for(var i = 0; i<= animatorClock.interps.length -1; i++)
+                            {
+                                animatorClock.interps[0].target = clockGroup.position
+                                clockRoom1.moving = true;
+                                animatorClock.start();
+                                sound.play();
+                            }
+                        }
+
+                        if (intersects[0].object.name == "Key_B"){
+
+                            scene.remove(keyRoom1);
+                            scene.remove(door1);
+                            Player.key1 = true;
+                            keySound.play();
+                            loadOpenDoor1();
+                            CreateHall1();
+                            document.getElementById("KEYS").innerHTML = "KEYS: 1"
+                        }
+
+                    }
+
+                }
+
+                else if (Player.room == "3"){
+
+                    var intersects = raycaster.intersectObjects( scene.children, true );
+
+                    if(intersects.length >0){
+
+                        if (!intersects[0].object.parent.grab){
+
+                            intersects[0].object.parent.grab = true;
+                        }
+                        else {
+                            
+                            intersects[0].object.parent.grab = false;
+                        }
+                        
+                        if (intersects[0].object.parent.move){
+
+                            animatorClock.interps[0].target = intersects[0].object.position;
                             animatorClock.start();
-                            sound.play();
+                            intersects[0].object.parent.move = false
+
+                        }
+
+                        if (intersects[0].object.name == "Key_B"){
+
+                            scene.remove(keyRoom1);
+                            scene.remove(door1);
+                            Player.key2 = true;
+                            loadOpenDoor3();
+                            CreateHall2();
+                            keySound.play();
+                            document.getElementById("KEYS").innerHTML = "KEYS: 2"
                         }
                     }
+                }
 
-                    if (intersects[0].object.name == "Key_B"){
+                else if (Player.room == "5"){
+
+                    var intersects = raycaster.intersectObjects( scene.children, true );
+
+                    if(intersects.length >0){
 
                         console.log(intersects[0].object)
-                        scene.remove(keyRoom1);
-                        scene.remove(door1);
-                        Player.key1 = true;
-                        keySound.play();
-                        loadOpenDoor1();
-                        CreateHall1();
-                        document.getElementById("KEYS").innerHTML = "KEYS: 1"
-                    }
+                    
 
+                        if(intersects[0].object.parent.tag == "gun"){
+
+                            scene.remove(FakeGun)
+                            Gun.visible = true;
+                            Player.gun = true;
+
+                        }
+                        else if (intersects[0].object.name == "Key_B"){
+
+                            console.log("YOU WON")
+                            scene.remove(Key_3);
+                            CreateSkybox();
+                            DeleteRoom3();
+                            document.getElementById("KEYS").innerHTML = "KEYS: 3";  
+                            document.getElementById("audio_atm").stop();
+
+                        }
+                    }
                 }
 
                 break;
@@ -318,7 +505,7 @@ function createScene(canvas)
     document.addEventListener( 'keyup', onKeyUp, false );
     raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 
-    var pointLight = new THREE.PointLight (0xffffff, .9, 60);
+    var pointLight = new THREE.PointLight (0xffffff, 1, 60);
     pointLight.position.set(15, 20, -60);
     pointLight.castShadow = true;
 
@@ -339,16 +526,20 @@ function createScene(canvas)
     window.addEventListener( 'resize', onWindowResize, false );
 
     ClockAnimations();
+    KeyAnimations();
 
     camera.add( listener ); 
 
     loadClockAudio();
     loadKeyAudio();
+
+    loadhandGun();
+
 }
 
 // Room 1 functions
 
-function CreateRoom1(){
+function CreateRoom1(){ 
 
     // Create floor texture map
         var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
@@ -610,7 +801,7 @@ function loadClock(){
                 clockGroup.add(clockRoom1)
 
                 scene.add(clockGroup);
-                Cuarto1.push(clockRoom1);
+                Cuarto1.push(clockGroup);
                 
             },
             function ( xhr ) {
@@ -751,8 +942,6 @@ function loadSofa(){
                 object.position.x = -25;
                 object.position.y = 0;
                 object.rotation.y = Math.PI /2
-                
-                object.collider = new THREE.Box3().setFromObject(object)
 
                 scene.add(object);
                 Cuarto1.push(object)
@@ -775,8 +964,6 @@ function loadSofa(){
 }
 
 function loadKey(){
-
-    console.log("loading key");
 
     if(!mtlLoader)
 
@@ -1092,7 +1279,7 @@ function CreateHall1(){
         wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
         wall.rotation.z = -Math.PI / 2;
         wall.position.x = 15;
-        wall.position.z = -129.5;
+        wall.position.z = -129.6;
         wall.position.y = 12.5;
 
         // Add the mesh to our group
@@ -1303,11 +1490,30 @@ function CreateRoom2(){
         Cuarto2.push(roof);
         roof.position.z = -160
 
-    LoadBox()
+    loadDoor2();
+
+    LoadBox(0,-2,-185);
+    LoadBox(4,-2,-184);
+    LoadBox(-3.5,-2,-184);
+    LoadBox(-2,-2,-179);
+    LoadBox(3,-2,-190);
+    LoadBox(1,-2,-180);
+
+    LoadBox(20,-2,-180);
+    LoadBox(21,-2,-186);
+
+    LoadBox(-21,-2,-145);
+    LoadBox(-11,-2,-150);
+
+
+    loadSkeleton();
+    loadWardobe();
+    loadPredator();
 
 }
 
-function LoadBox(){
+function LoadBox(x,y,z){
+
     if(!objLoader)
 
         objLoader = new THREE.OBJLoader();
@@ -1331,15 +1537,15 @@ function LoadBox(){
             } );
                     
             object.scale.set(.1,.1,.1);
-            object.position.z = -150;
-            object.position.x = 0;
-            object.position.y = -5;
-        
-            
-            bookCaseRoom1 = object
+            object.position.z = z;
+            object.position.x = x;
+            object.position.y = y;
 
-            scene.add(bookCaseRoom1);
-            Cuarto2.push(bookCaseRoom1)
+            object.grab = false;
+
+            scene.add(object);
+            Cuarto2.push(object)
+            Boxes.push(object)
         },
         function ( xhr ) {
 
@@ -1358,6 +1564,1095 @@ function LoadBox(){
 
 }
 
+function loadDoor2(){
+
+   
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/InteriorDoorObj/InteriorDoor.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/InteriorDoorObj/InteriorDoor.obj',
+
+            function(object)
+            {
+                var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(.17,.17,.17);
+                object.position.z = -130.1;
+                object.position.x = 15;
+                object.position.y = 0;
+                
+                door1 = object
+
+                scene.add(door1);
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+
+}
+
+function loadSkeleton(){
+   
+    if(!objLoader)
+
+        objLoader = new THREE.OBJLoader();
+
+    objLoader.load(
+        'models/skeleton/skeleton.obj',
+
+        function(object)
+        {
+            var texture = new THREE.TextureLoader().load('models/skeleton/tex_skeleton.jpg');
+            //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+            object.traverse( function ( child ) 
+            {
+                if ( child instanceof THREE.Mesh ) 
+                {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    child.material.map = texture;
+                    //child.material.normalMap = normalMap;
+                }
+            } );
+                    
+            object.scale.set(.5,.5,.5);
+            object.position.z = -160;
+            object.position.x = 25;
+            object.position.y = 0;
+
+            scene.add(object);
+            Cuarto2.push(object);
+            
+        },
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            building_loaded = ( xhr.loaded / xhr.total * 100 )
+    
+        },
+        // called when loading has errors
+        function ( error ) {
+    
+            console.log( 'An error happened' );
+    
+        });
+}
+
+function loadWardobe(){
+
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/wardobe/Wardrobe.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/wardobe/Wardrobe.obj',
+
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(8,8,8);
+                object.position.z = -140;
+                object.position.x = 30;
+                object.position.y = 0;
+
+                //object.rotation.y = Math.PI
+                
+                object.move = true;
+
+                Cuarto2.push(object)
+                scene.add(object);
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+}
+
+function loadPredator(){
+
+    if(!objLoader)
+
+        objLoader = new THREE.OBJLoader();
+
+    objLoader.load(
+        'models/Predator_OBJ/Predator_OBJ.OBJ',
+
+        function(object)
+        {
+            //var texture = new THREE.TextureLoader().load('models/skeleton/tex_skeleton.jpg');
+            //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+            object.traverse( function ( child ) 
+            {
+                if ( child instanceof THREE.Mesh ) 
+                {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    //child.material.map = texture;
+                    //child.material.normalMap = normalMap;
+                }
+            } );
+                    
+            object.scale.set(2,2,2);
+            object.position.z = -160;
+            object.position.x = -27;
+            object.position.y = 8;
+
+            object.rotation.y = Math.PI/2
+
+            object.move = true;
+
+            scene.add(object);
+            Cuarto2.push(object);
+            
+        },
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            building_loaded = ( xhr.loaded / xhr.total * 100 )
+    
+        },
+        // called when loading has errors
+        function ( error ) {
+    
+            console.log( 'An error happened' );
+    
+        });
+}
+
+function loadKey2(){
+    
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/Key_B/Key_B_02.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/Key_B/Key_B_02.obj',
+
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(.3,.3,.3);
+                object.position.z = -184;
+                object.position.x = -0.5;
+                object.position.y = 0.5;
+
+                object.rotation.x = Math.PI/2;   
+                
+                keyRoom1 = object;
+
+                scene.add(keyRoom1);
+                
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+    
+}
+
+function loadOpenDoor3(){
+
+    var map = new THREE.TextureLoader().load("images/portal2.png");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10,20);
+
+    var color = 0xffffff;
+
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(10, 16, 50, 50);
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh.position.y = 8;
+    mesh.position.z = -130.5;
+    mesh.position.x = 15;
+
+
+    // Add the mesh to our group
+    scene.add( mesh );
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+
+    Cuarto2.push(mesh);
+
+}
+
+function DeleteRoom2(){
+
+    for (i = 0; i < Cuarto2.length; i++){
+
+        scene.remove(Cuarto2[i]);
+    }
+}
+
+// Hall 2 functions
+
+function CreateHall2(){
+
+    // Create floor texture map
+        var map = new THREE.TextureLoader().load("images/hall1.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(3,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.x = 15;
+        floor.position.z = -80;
+
+        // Add the mesh to our group
+        scene.add( floor );
+        floor.castShadow = false;
+        floor.receiveShadow = true;
+
+        Hall2.push(floor);
+
+    // Create roof texture map
+        var map = new THREE.TextureLoader().load("images/hall1.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(3,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        roof.rotation.x = -Math.PI / 2;
+        roof.position.x = 15;
+        roof.position.z = -80;
+        roof.position.y = 25;
+
+        // Add the mesh to our group
+        scene.add( roof );
+        roof.castShadow = false;
+        roof.receiveShadow = true;
+
+        Hall2.push(roof);
+
+    // Create wall 1 texture map
+        var map = new THREE.TextureLoader().load("images/hall1.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(3,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.z = -Math.PI / 2;
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = 30;
+        wall.position.z = -80;
+        wall.position.y = 12.5;
+
+        // Add the mesh to our group
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Hall2.push(wall);
+
+    // Create wall 2 texture map
+        var map = new THREE.TextureLoader().load("images/hall1.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(3,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(30, 100, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.z = -Math.PI / 2;
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = 0;
+        wall.position.z = -80;
+        wall.position.y = 12.5;
+
+        // Add the mesh to our group
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Hall2.push(wall);
+
+    // Create wall 3 texture map
+        var map = new THREE.TextureLoader().load("images/hall1.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(3,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.z = -Math.PI / 2;
+        wall.position.x = 15;
+        wall.position.z = -30.5;
+        wall.position.y = 12.5;
+
+        // Add the mesh to our group
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Hall2.push(wall);
+
+    // Create wall 4 texture map
+        var map = new THREE.TextureLoader().load("images/hall1.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(3,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.z = -Math.PI / 2;
+        wall.position.x = 15;
+        wall.position.z = -129.6;
+        wall.position.y = 12.5;
+
+        // Add the mesh to our group
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Hall2.push(wall);
+    
+    loadOpenDoor4();
+    loadCorpse();
+
+}
+
+function loadOpenDoor4(){
+
+    var map = new THREE.TextureLoader().load("images/portal2.png");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10,20);
+
+    var color = 0xffffff;
+
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(10, 16, 50, 50);
+    mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    mesh.position.y = 8;
+    mesh.position.z = -31;
+    mesh.position.x = 15;
+
+
+    // Add the mesh to our group
+    scene.add( mesh );
+    mesh.castShadow = false;
+    mesh.receiveShadow = true;
+
+    Hall2.push(mesh);
+
+}
+
+function loadCorpse(){
+
+
+    if(!objLoader)
+
+        objLoader = new THREE.OBJLoader();
+
+    objLoader.load(
+        'models/dead_max_obj/dead_body_1.obj',
+
+        function(object)
+        {
+            //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+            //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+            object.traverse( function ( child ) 
+            {
+                if ( child instanceof THREE.Mesh ) 
+                {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    //child.material.map = texture;
+                    //child.material.normalMap = normalMap;
+                }
+            } );
+                    
+            object.scale.set(.1,.1,.1);
+            object.position.z = -110;
+            object.position.x = 20;
+            object.position.y = 0;
+
+            Hall2.push(object)
+            scene.add(object);
+        },
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            building_loaded = ( xhr.loaded / xhr.total * 100 )
+    
+        },
+        // called when loading has errors
+        function ( error ) {
+    
+            console.log( 'An error happened' );
+    
+        });
+
+        objLoader.load(
+            'models/dead_max_obj/dead_body_2.obj',
+
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(.08,.08,.08);
+                object.position.z = -80;
+                object.position.x = 5;
+                object.position.y = 0;
+
+                object.rotation.y = Math.PI/2
+
+                Hall2.push(object)
+                scene.add(object);
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+        });
+    
+    objLoader.load(
+        'models/dead_max_obj/dead_body_3.obj',
+
+        function(object)
+        {
+            //var texture = new THREE.TextureLoader().load('models/InteriorDoorObj/InteriorDoor_Diffuce.jpg');
+            //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+            object.traverse( function ( child ) 
+            {
+                if ( child instanceof THREE.Mesh ) 
+                {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    //child.material.map = texture;
+                    //child.material.normalMap = normalMap;
+                }
+            } );
+                    
+            object.scale.set(.05,.05,.05);
+            object.position.z = -50;
+            object.position.x = 20;
+            object.position.y = 0;
+
+            Hall2.push(object)
+            scene.add(object);
+        },
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            building_loaded = ( xhr.loaded / xhr.total * 100 )
+    
+        },
+        // called when loading has errors
+        function ( error ) {
+    
+            console.log( 'An error happened' );
+    
+        });
+
+
+}
+
+function DeleteHall2(){
+
+    for (i = 0; i < Hall2.length ; i++){
+
+        scene.remove(Hall2[i]);
+    }
+
+}
+
+// Last Room function
+
+function createRoom3(){
+
+    // Create floor texture map
+        var map = new THREE.TextureLoader().load("images/skybox/floor.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+        floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        floor.rotation.x = -Math.PI / 2;
+
+        // Add the mesh to our group
+        scene.add( floor );
+        floor.castShadow = false;
+        floor.receiveShadow = true;
+
+        Cuarto3.push(floor);
+
+    // Create Wall 1 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+        
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.position.z = 30
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Cuarto3.push(wall)
+
+    // Create Wall 2 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.position.z = -30
+
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+        Cuarto3.push(wall)
+
+    // Create Wall 3 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = 30
+        
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Cuarto3.push(wall)
+
+    // Create Wall 4 texture map
+        var map = new THREE.TextureLoader().load("images/skybox/wall.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 50, 50, 50);
+        wall = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        wall.rotation.y = -Math.PI / 2;
+        wall.position.x = -30
+
+        scene.add( wall );
+        wall.castShadow = false;
+        wall.receiveShadow = true;
+
+        Cuarto3.push(wall);
+
+
+    // Create roof texture map
+        var map = new THREE.TextureLoader().load("images/skybox/roof.jpg");
+        map.wrapS = map.wrapT = THREE.RepeatWrapping;
+        map.repeat.set(10,10);
+
+        var color = 0xffffff;
+
+        // Put in a ground plane to show off the lighting
+        geometry = new THREE.PlaneGeometry(60, 60, 50, 50);
+        roof = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+        roof.rotation.x = -Math.PI / 2;
+        roof.position.y = 25
+
+
+        // Add the mesh to our group
+        scene.add( roof );
+        roof.castShadow = false;
+        roof.receiveShadow = true;
+
+        Cuarto3.push(roof);
+
+
+    loadTable();
+    loadGun();
+
+    loadFan();
+    loadKey3();
+}
+
+function loadGun(){
+
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/double_obj/SSG_double.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/double_obj/SSG_double.obj',
+
+            function(object)
+            {
+                var texture = new THREE.TextureLoader().load('models/double_obj/free-grey-camouflage-vector.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(.1,.1,.1);
+                object.position.z = 0;
+                object.position.x = 27.5;
+                object.position.y = 5.5;
+
+                object.rotation.y = Math.PI
+                object.rotation.z = Math.PI/2
+
+                object.tag = "gun";
+
+                FakeGun = object
+
+                scene.add(FakeGun);
+                
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+
+}
+
+function loadhandGun(){
+
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/double_obj/SSG_double.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/double_obj/SSG_double.obj',
+
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(.1,.1,.1);
+                object.position.z = -3;
+                object.position.x = 1;
+                object.position.y = -2;
+
+                object.rotation.y = Math.PI
+
+                object.visible = false;
+
+                Gun = object
+
+                Player.add(Gun)
+                Cuarto3.push(Gun)
+                //scene.add(object);
+                
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+
+}
+
+function loadTable(){
+
+    if(!objLoader)
+
+        objLoader = new THREE.OBJLoader();
+
+    objLoader.load(
+        'models/table/WoodCoffeeTable.obj',
+
+        function(object)
+        {
+            var texture = new THREE.TextureLoader().load('models/table/Textures/TeaTable_default_color.png');
+            //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+            object.traverse( function ( child ) 
+            {
+                if ( child instanceof THREE.Mesh ) 
+                {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    child.material.map = texture;
+                    //child.material.normalMap = normalMap;
+                }
+            } );
+                    
+            object.scale.set(.2,.5,.5);
+            object.position.z = 0;
+            object.position.x = 28;
+            object.position.y = 0;
+
+            Cuarto3.push(object)
+            scene.add(object);
+        },
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+            building_loaded = ( xhr.loaded / xhr.total * 100 )
+    
+        },
+        // called when loading has errors
+        function ( error ) {
+    
+            console.log( 'An error happened' );
+    
+        });
+}
+
+function loadFan(){
+
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/fan/ceiling_fan.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/fan/ceiling_fan.obj',
+
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(10,10,10);
+                object.position.z = 0;
+                object.position.x = 0;
+                object.position.y = 23;
+
+                Fan = object
+
+                Fan.collider = new THREE.Box3().setFromObject(Fan);
+
+                Cuarto3.push(Fan)
+                scene.add(Fan);
+                
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+
+}
+
+function loadKey3(){
+
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/Key_B/Key_B_02.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/Key_B/Key_B_02.obj',
+
+            function(object)
+            {
+                //var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        //child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(.3,.3,.3);
+                object.position.z = -0.5;
+                object.position.x = -0.5;
+                object.position.y = 24;
+
+                object.rotation.x = Math.PI/2;   
+                object.drop = false;
+                
+                Key_3 = object;
+
+                scene.add(Key_3);
+                
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+}
+
 function onWindowResize() 
 {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -1365,8 +2660,158 @@ function onWindowResize()
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
+function loadSofa(){
 
-THREE.PointerLockControls = function ( camera, domElement ) {
+    if(!mtlLoader)
+
+        mtlLoader = new THREE.MTLLoader();
+
+    mtlLoader.load(
+        'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.mtl',
+        
+        function(materials){
+
+            materials.preload();
+
+        if(!objLoader)
+
+            objLoader = new THREE.OBJLoader();
+
+            objLoader.setMaterials(materials)
+
+        objLoader.load(
+            'models/LuxuryLivingRoomSofaOBJ/LuxuryLivingRoomSofa.obj',
+
+            function(object)
+            {
+                var texture = new THREE.TextureLoader().load('models/LuxuryLivingRoomSofaOBJ/Textures/FabricDiffuse.jpg');
+                //var normalMap = new THREE.TextureLoader().load('Stanford_Bunny_OBJ-JPG/bunnystanford_res1_UVmapping3072_TerraCotta_g001c.jpg');       
+                object.traverse( function ( child ) 
+                {
+                    if ( child instanceof THREE.Mesh ) 
+                    {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        child.material.map = texture;
+                        //child.material.normalMap = normalMap;
+                    }
+                } );
+                        
+                object.scale.set(.3,.3,.3);
+                object.position.z = 0;
+                object.position.x = -25;
+                object.position.y = 0;
+                object.rotation.y = Math.PI /2
+
+                scene.add(object);
+                Cuarto3.push(object)
+            },
+            function ( xhr ) {
+
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+                building_loaded = ( xhr.loaded / xhr.total * 100 )
+        
+            },
+            // called when loading has errors
+            function ( error ) {
+        
+                console.log( 'An error happened' );
+        
+            });
+        }
+    )
+}
+
+function ShootBullet(){
+
+    var material = new THREE.MeshPhongMaterial({color: 0x00ff00 });
+    var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
+    cube = new THREE.Mesh(geometry, material);
+
+    cube.position.y = controls.getObject().position.y;
+    cube.position.z = controls.getObject().position.z;
+    cube.position.x = controls.getObject().position.x;
+
+    cube.moveto = camera.getWorldDirection();
+
+    Bullets.push(cube);
+    scene.add(cube)
+
+}
+
+function KeyAnimations()
+{
+
+   
+    animatorKey = new KF.KeyFrameAnimator;
+    animatorKey.init({ 
+        interps:
+            [
+                { 
+                    keys:[0, 1], 
+                    values:[
+                            { x : 0, y : 24 },
+                            { x : 0, y : 0},
+                            ],
+                }
+            ],
+        loop: loopAnimation,
+        duration:duration,
+    });
+
+}
+
+function DeleteRoom3(){
+
+    for (i = 0;  i < Cuarto3.length; i++){
+
+        scene.remove(Cuarto3[i])
+    }
+}
+
+// SKYBOX 
+
+function CreateSkybox(){
+
+    ambientLight = new THREE.AmbientLight ( 0x888888 );
+    scene.add(ambientLight)
+
+    var map = new THREE.TextureLoader().load("images/Skybox_out/bot.jpg");
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.repeat.set(10,10);
+
+    var color = 0xffffff;
+
+    // Put in a ground plane to show off the lighting
+    geometry = new THREE.PlaneGeometry(1000,1000, 50, 50);
+    floor = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({color:color, map:map, side:THREE.DoubleSide}));
+    floor.rotation.x = -Math.PI / 2;
+
+    // Add the mesh to our group
+    scene.add( floor );
+    floor.castShadow = false;
+    floor.receiveShadow = true;
+
+
+    var imagePrefix = "images/Skybox_out/";
+    //var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+    var directions  = ["uno", "tres", "top", "bot", "dos", "cuatro"];
+	var imageSuffix = ".jpg";
+	var skyGeometry = new THREE.CubeGeometry( 1000, 1000, 1000 );	
+	
+	var materialArray = [];
+	for (var i = 0; i < 6; i++)
+		materialArray.push( new THREE.MeshBasicMaterial({
+			map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+			side: THREE.BackSide
+		}));
+	var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+	var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+	scene.add( skyBox );
+}
+
+THREE.PointerLockControls = function ( Player, domElement ) {
 
 
 	var scope = this;
@@ -1374,10 +2819,10 @@ THREE.PointerLockControls = function ( camera, domElement ) {
 	this.domElement = domElement || document.body;
 	this.isLocked = false;
 
-	camera.rotation.set( 0, 0, 0 );
+	Player.rotation.set( 0, 0, 0 );
 
 	var pitchObject = new THREE.Object3D();
-	pitchObject.add( camera );
+	pitchObject.add( Player );
 
 	var yawObject = new THREE.Object3D();
 	yawObject.position.y = 10;

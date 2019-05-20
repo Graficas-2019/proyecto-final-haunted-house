@@ -1,0 +1,22 @@
+# MTL written from C:\Users\admin\Desktop\TS\Ventilador de teto\ceiling fan.obj
+newmtl light
+Kd 0.8 0.8 0.8
+Ns 256
+d 1
+illum 2
+Ka 0.2 0.2 0.2
+Ks 0.04 0.04 0.04
+newmtl metal
+Kd 0.0661525 0.0661525 0.0661525
+Ns 1024
+d 1
+illum 2
+Ka 0 0 0
+Ks 0.5 0.5 0.5
+newmtl pas
+Kd 0.74816 0.738093 0.673344
+Ns 256
+d 1
+illum 2
+Ka 0 0 0
+Ks 0.04 0.04 0.04
